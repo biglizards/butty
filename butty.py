@@ -190,21 +190,26 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    users1 = []
     try:
         channel = get_channel(message)
     except KeyError:
         servers[message.server.id] = Server(message)
         channel = get_channel(message)
     users = message.server.members
-    user1 = random.choice(users)
-    user2 = random.choice(users)
+    for user in users:
+        users1.append(user)
+    user1 = random.choice(users1)
+    user2 = random.choice(users1)
+    user1 = user1.name
+    user2 = user2.name
     msg = message.content.split(" ")
     command = msg[0].lower()
     args = msg[1:]
     if not channel.blacklisted:
-            fuckin = random.randint(1, 100)
-            if fuckin == 1:
-                await client.send_message(message.channel, (fuck.random(name='Tom', from_='Chris').text))
+        fuckin = random.randint(1, 500)
+        if fuckin == 1:
+            await client.send_message(message.channel, (fuck.random(name=user1, from_=user2).text))
         if channel.cb:
             await cleverchat(message, client, channel.cb)
 
