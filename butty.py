@@ -361,10 +361,10 @@ async def on_message(message):
                         if not voice_channel:
                             await client.send_message(message.channel, "No voice channels could be found. Does butty have the required perms?")
                     # discord.opus.load_opus("/usr/lib/x86_64-linux-gnu/libopus.so")
-                    discord.opus.load_opus("extras/opus.dll")
+                    #discord.opus.load_opus("extras/opus.dll")
+                    discord.opus.load_opus("extras/opus.so")
                     if not voice_channel:
                         return None
-                    #discord.opus.load_opus("extras/opus.so")
                     voice = await client.join_voice_channel(voice_channel)
                     server.voice = voice
 
