@@ -17,7 +17,6 @@ import os
 # to do list:
 # oh god the text is highlighted what
 # alerts
-# finish random fuck yous
 # finish anagram game
 # update the help section
 # whole server to do lists
@@ -141,6 +140,18 @@ async def makeLogs(message, send=True):
     else:
         return filename
 
+
+async def fuckin(message):
+    fuckin = random.randint(1, 500)
+    if fuckin == 1:
+        users1 = []
+        users = message.server.members
+        for user in users:
+            users1.append(user)
+        user1, user2 = random.choice(users1).name, random.choice(users1).name
+        await client.send_message(message.channel, (fuck.random(name=user1, from_=user2).text))
+
+
 async def purge(message, client, channel, limit):
     if is_admin(message):
         if limit > 200:
@@ -148,9 +159,11 @@ async def purge(message, client, channel, limit):
         else:
             await client.purge_from(channel, limit=limit, check=should_remove)
 
+
 async def butty(message):
     if message.author.id != "229223616217088001" and "butty" in message.content:
         await client.send_message(message.channel, "yes")
+
 
 async def lmddgtfy(message):
     query = urllib.parse.quote(message.content[6:])
@@ -158,12 +171,16 @@ async def lmddgtfy(message):
     await client.send_message(message.channel, result)
     await client.delete_message(message)
 
+
 cb = Cleverbot()
 clever_chatting = {}
 
+
 client = discord.Client()
 
+
 servers = {}
+
 
 if not os.path.exists('extras'):
     os.makedirs('extras')
@@ -175,7 +192,7 @@ words_sorted = [sorted(word) for word in words]
 database = sqlite3.connect("extras/buttybot.db")
 cursor = database.cursor()
 # print(cursor.execute("select name from sqlite_master where type='table'").fetchall())
-# cursor.execute('CREATE TABLE todolist(id, ids, task)')
+# cursor.execute('CREATE TABLE todolistserver(id, ids, task)')
 # database.commit()
 
 
@@ -185,33 +202,27 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-    await client.change_status(game=discord.Game(name="type [help for help"))
+    await client.change_status(game=discord.Game(name="the real butty, no matter what they say"))
+    #with open("butty.png", "rb") as file:
+        #await client.edit_profile(avatar=file.read())
+        #this changes the avatar
 
 
 @client.event
 async def on_message(message):
-    users1 = []
     try:
         channel = get_channel(message)
     except KeyError:
         servers[message.server.id] = Server(message)
         channel = get_channel(message)
-    users = message.server.members
-    for user in users:
-        users1.append(user)
-    user1 = random.choice(users1)
-    user2 = random.choice(users1)
-    user1 = user1.name
-    user2 = user2.name
     msg = message.content.split(" ")
     command = msg[0].lower()
     args = msg[1:]
     if not channel.blacklisted:
-        fuckin = random.randint(1, 500)
-        if fuckin == 1:
-            await client.send_message(message.channel, (fuck.random(name=user1, from_=user2).text))
         if channel.cb:
             await cleverchat(message, client, channel.cb)
+
+        await fuckin(message)
 
         await butty(message)
 
@@ -250,7 +261,7 @@ async def on_message(message):
             else:
                 await client.send_message(message.channel, "There were no results for " + newmsg)
 
-        elif command == "[quit":
+        elif command == "[getout.avi":
             restart(message)
 
         elif command == "[clean":
@@ -306,20 +317,19 @@ async def on_message(message):
                 newlist = []
                 try:
                     user = msg[2]
-                    user = user.replace("<@", "")
-                    user = user.replace(">", "")
-                    print(user)
-                    tasks = cursor.execute("SELECT task FROM todolist WHERE id=?", (user,))
+                    user1 = user.replace("<@", "")
+                    user1 = user1.replace(">", "")
+                    tasks = cursor.execute("SELECT task FROM todolist WHERE id=?", (user1,))
                 except IndexError:
-                    user = message.author.id
-                    print(user)
-                    tasks = cursor.execute("SELECT task FROM todolist WHERE id=?", (user,))
+                    user = "<@" + message.author.id + ">"
+                    user1 = message.author.id
+                    tasks = cursor.execute("SELECT task FROM todolist WHERE id=?", (user1,))
                 tasks = tasks.fetchall()
                 for x in range(0, len(tasks)):
                     newlist.append(tasks[x][0])
                 for x in range(0, len(newlist)):
                     newlist[x] = str(x + 1) + ": " + newlist[x] + "\n"
-                await client.send_message(message.channel, "To Do:\n" + ''.join(newlist))
+                await client.send_message(message.channel, "To Do list for " + user + ":\n" + ''.join(newlist))
             elif msg[1] == "clear" or msg[1] == "c":
                 user = message.author.id
                 cursor.execute("DELETE FROM todolist WHERE id=?", (user,))
@@ -332,7 +342,6 @@ async def on_message(message):
                 removed = (cursor.execute("SELECT task FROM todolist WHERE id=? AND ids=?", (user, ids))).fetchall()
                 cursor.execute("DELETE FROM todolist WHERE id=? AND ids=?", (user, ids))
                 newid = (cursor.execute("SELECT ids FROM todolist WHERE id=?", (user,))).fetchall()
-                print(newid)
                 for x in range(0, len(newid)):
                     if newid[x][0] > ids:
                         moveup.append(newid[x][0])
@@ -340,6 +349,63 @@ async def on_message(message):
                     cursor.execute("UPDATE todolist SET ids=? WHERE ids=?", ((moveup[x] - 1), moveup[x]))
                 database.commit()
                 await client.send_message(message.channel, "Removed **" + removed[0][0] + "** from your list")
+
+        elif command == "[gtodo" or command == "[gt":
+            if msg[1] == "add" or msg[1] == "a":
+                if is_admin(message):
+                    task = ' '.join(msg[2:])
+                    servertodo = message.server.id
+                    if task != "":
+                        todoid = cursor.execute("SELECT * FROM todolistserver WHERE id=?", (servertodo,))
+                        todoid = len(todoid.fetchall()) + 1
+                        cursor.execute("INSERT INTO todolistserver VALUES(?, ?, ?)", (servertodo, todoid, task))
+                        database.commit()
+                        await client.send_message(message.channel, "Added **" + task + "** to your list")
+                    else:
+                        await client.send_message(message.channel, "You tried to add nothing; I'm not gonna do it")
+                else:
+                    await client.send_message(message.channel, "You don't have permission to edit the Guild's list")
+            elif msg[1] == "show" or msg[1] == "s":
+                newlist = []
+                try:
+                    user = msg[2]
+                    user = user.replace("<@", "")
+                    user = user.replace(">", "")
+                    tasks = cursor.execute("SELECT task FROM todolistserver WHERE id=?", (user,))
+                except IndexError:
+                    user = message.server.id
+                    tasks = cursor.execute("SELECT task FROM todolistserver WHERE id=?", (user,))
+                tasks = tasks.fetchall()
+                for x in range(0, len(tasks)):
+                    newlist.append(tasks[x][0])
+                for x in range(0, len(newlist)):
+                    newlist[x] = str(x + 1) + ": " + newlist[x] + "\n"
+                await client.send_message(message.channel, "Guild To Do:\n" + ''.join(newlist))
+            elif msg[1] == "clear" or msg[1] == "c":
+                if is_admin(message):
+                    user = message.server.id
+                    cursor.execute("DELETE FROM todolistserver WHERE id=?", (user,))
+                    database.commit()
+                    await client.send_message(message.channel, "The Guild list has been cleared")
+                else:
+                    await client.send_message(message.channel, "You don't have permission to edit the Guild's list")
+            elif msg[1] == "remove" or msg[1] == "r":
+                if is_admin(message):
+                    ids = int(msg[2])
+                    moveup = []
+                    user = message.server.id
+                    removed = (cursor.execute("SELECT task FROM todolistserver WHERE id=? AND ids=?", (user, ids))).fetchall()
+                    cursor.execute("DELETE FROM todolistserver WHERE id=? AND ids=?", (user, ids))
+                    newid = (cursor.execute("SELECT ids FROM todolistserver WHERE id=?", (user,))).fetchall()
+                    for x in range(0, len(newid)):
+                        if newid[x][0] > ids:
+                            moveup.append(newid[x][0])
+                    for x in range(0, len(moveup)):
+                        cursor.execute("UPDATE todolistserver SET ids=? WHERE ids=?", ((moveup[x] - 1), moveup[x]))
+                    database.commit()
+                    await client.send_message(message.channel, "Removed **" + removed[0][0] + "** from the Guild's list")
+                else:
+                    await client.send_message(message.channel, "You don't have permission to edit the Guild's list")
 
         elif command == "[chat":
             if msg[1] == "start":
