@@ -35,7 +35,7 @@ def should_remove(m):
 
 
 def restart(message):
-    if message.author.id == "135496683009081345":
+    if message.author.id == "135496683009081345" or message.author.id == '135483608491229184':
     #    os.execl(sys.executable, sys.executable, *sys.argv)
         os.system("butty.py")
         sys.exit("You told it to restart it's not an error don't worry")
