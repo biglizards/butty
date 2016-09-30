@@ -419,6 +419,6 @@ try:
     with open("extras/token", 'r') as Token:
         token = Token.read()
         client.run(token)
-except:
+except FileNotFoundError:
     print("token not found\nplease create a file called \"token\" in the \"extras\" folder and put the token in that")
     input()
