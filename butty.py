@@ -13,7 +13,6 @@ import os
 # import re
 # import threading
 
-print("yay it worked")
 
 # to do list:
 # oh god the text is highlighted what
@@ -415,6 +414,9 @@ async def on_message(message):
             elif msg[1] == "stop":
                 channel.cb = False
 
+        elif command == "[say":
+            await client.send_message(message.channel, ' '.join(msg[1:]))
+                
         elif command == "[voice" or command == "[v":
             server = servers[message.server.id]
             voice = server.voice
