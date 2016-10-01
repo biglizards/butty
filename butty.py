@@ -13,6 +13,7 @@ import os
 # import re
 # import threading
 
+print("yay it worked")
 
 # to do list:
 # oh god the text is highlighted what
