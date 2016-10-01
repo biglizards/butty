@@ -57,10 +57,6 @@ class Channel:
         return self.blacklisted
 
 
-def get_channel(message):
-    server = servers[message.server.id]
-    return server.channels[message.channel.id]
-
 async def buttyhelp(message):
     await client.send_message(message.channel, '**Here are the commands:**, <@%s>\n\n' % message.author.id
                               + '**[help** - Show command list\n\n'
@@ -210,10 +206,11 @@ async def on_ready():
 @client.event
 async def on_message(message):
     try:
-        channel = get_channel(message)
+        server = servers[message.server.id]
     except KeyError:
         servers[message.server.id] = Server(message)
-        channel = get_channel(message)
+        server = servers[message.server.id]
+    chanel = server.channels[message.channel.id]
     msg = message.content.split(" ")
     command = msg[0].lower()
     args = msg[1:]
