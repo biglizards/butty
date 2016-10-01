@@ -169,7 +169,6 @@ async def lmddgtfy(message):
     query = urllib.parse.quote(message.content[6:])
     result = "http://lmddgtfy.net/?q=" + query
     await client.send_message(message.channel, result)
-    await client.delete_message(message)
 
 
 cb = Cleverbot()
