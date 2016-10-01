@@ -210,7 +210,11 @@ async def on_message(message):
     except KeyError:
         servers[message.server.id] = Server(message)
         server = servers[message.server.id]
-    channel = server.channels[message.channel.id]
+    try:
+        channel = server.channels[message.channel.id]
+    except KeyError:
+        server.channels[message.channel.id] = Channel(message)
+        channel = server.channels[message.channel.id]
     msg = message.content.split(" ")
     command = msg[0].lower()
     args = msg[1:]
