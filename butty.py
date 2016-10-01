@@ -29,6 +29,7 @@ class Server:
         self.channels = {message.channel.id: Channel(message)}
         self.voice = False
         self.player = False
+        self.searching = False
 
 
 class Channel:
@@ -197,7 +198,7 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-    await client.change_status(game=discord.Game(name="the real butty, no matter what they say"))
+    await client.change_presence(game=discord.Game(name="the real butty, no matter what they say"))
     #with open("butty.png", "rb") as file:
         #await client.edit_profile(avatar=file.read())
         #this changes the avatar
@@ -422,16 +423,20 @@ async def on_message(message):
                     await client.send_message(message.channel, "You're already in a voice channel")
                 else:
                     if len(args) == 2:
-                        if len(args[2]) == 18:
+                        if len(args[1]) == 18:
                             voice_channel = client.get_channel(str(msg[2]))
                         else:
                             await client.send_message(message.channel, "That's not a valid voice channel id")
                     else:
-                        for x in message.server.channels:
-                            if str(x.type) == 'voice' and x.position == 0:
-                                voice_channel = x
-                        if not voice_channel:
-                            await client.send_message(message.channel, "No voice channels could be found. Does butty have the required perms?")
+                        try:
+                            userchan = message.server.get_member(message.author.id).voice.voice_channel.id
+                            voice_channel = client.get_channel(userchan)
+                        except AttributeError:
+                                for x in message.server.channels:
+                                    if str(x.type) == 'voice' and x.position == 0:
+                                        voice_channel = x
+                                if not voice_channel:
+                                    await client.send_message(message.channel, "No voice channels could be found. Does butty have the required perms?")
                     # discord.opus.load_opus("extras/opus.dll")
                     discord.opus.load_opus("extras/opus.so")
                     if not voice_channel:
@@ -450,22 +455,28 @@ async def on_message(message):
                 else:
                     await client.send_message(message.channel, "You aren't connected to a voice channel")
             elif msg[1] == "play" or msg[1] == "p":
-                print(server.voice)
-                if server.voice:
-                    if server.player and server.player.is_playing():
-                        await client.send_message(message.channel, "You're already playing something")
-                    else:
-                        res = str(' '.join(msg[2:]))
-                        result = youtube(res)
-                        server.player = await server.voice.create_ytdl_player(result)
-                        server.player.start()
-                        await client.send_message(message.channel, "Now playing: `" + res + "`")
+                if server.searching:
+                    await client.send_message(message.channel, "You're already playing something")
                 else:
-                    await client.send_message(message.channel, "You haven't joined a voice channel")
+                    if server.voice:
+                        server.searching = True
+                        if server.player and server.player.is_playing():
+                            await client.send_message(message.channel, "You're already playing something")
+                            server.searching = False
+                        else:
+                            res = str(' '.join(msg[2:]))
+                            result = youtube(res)
+                            server.player = await server.voice.create_ytdl_player(result)
+                            server.player.start()
+                            server.searching = False
+                            await client.send_message(message.channel, "Now playing: `" + res + "`")
+                    else:
+                        await client.send_message(message.channel, "You haven't joined a voice channel")
 
             elif msg[1] == "stop" or msg[1] == "s":
                 if server.player:
                     server.player.stop()
+                    server.searching = False
                 else:
                     await client.send_message(message.channel, "You aren't playing anything")
 
