@@ -13,20 +13,23 @@ import logging
 # import sys
 # import re
 # import threading
+import parsedatetime.parsedatetime
+from pytz import timezone
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+import asyncio
 
 
 # to do list:
 # oh god the text is highlighted what
-# alerts
+# repeated + deleting alerts
 # finish anagram game
 # update the help section
-# whole server to do lists
-# aaaa it highlighted again
 
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='extras/discord.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='extras/discord.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -80,6 +83,7 @@ async def buttyhelp(message):
                               + '**[chat (start/stop)** - Start or stop chat mode\n\n'
                               + '**Any word with butty in** - I say "yes"\n\n'
                               + '**Anything while chat mode is enabled** - I will talk back')
+
 
 async def makeLogs(message, send=True):
     global logs
@@ -146,6 +150,55 @@ async def makeLogs(message, send=True):
         return filename
 
 
+async def future(message, repeat):
+    msg = message.content.split(",", 1)
+    cal = parsedatetime.Calendar()
+    time = datetime.now(timezone('UTC'))
+    currenttime = cal.parse(str(time))[0]
+    newtime = cal.parse(msg[0], currenttime)[0]
+    list = []
+    alertid = len(cursor.execute("SELECT * FROM alert WHERE user=?", (message.author.id,)).fetchall()) + 1
+    for x in range(0, len(currenttime)):
+        if newtime[x] - currenttime[x] == 0:
+            list.append(0)
+        else:
+            list.append(newtime[x] - currenttime[x])
+    for x in range(0, len(list)):
+        if x == 0:
+            time += relativedelta(years=list[x])
+        if x == 1:
+            time += relativedelta(months=list[x])
+        if x == 2:
+            time += relativedelta(days=list[x])
+        if x == 3:
+            time += relativedelta(hours=list[x])
+        if x == 4:
+            time += relativedelta(minutes=list[x])
+        else:
+            pass
+    time = str(time)[:-16]
+    cursor.execute("INSERT INTO alert VALUES(?, ?, ?, ?, ?, ?)", (message.author.id, message.channel.id, time, msg[1], repeat, alertid))
+    database.commit()
+    await client.send_message(message.channel, "Reminder set for " +  time + " UTC")
+
+
+async def timecheck():
+    now = str(datetime.now(timezone('UTC')))[:-16]
+    alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
+    users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
+    channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
+    if len(alerts) != 0:
+        for x in range(0, len(alerts)):
+            channel = client.get_channel(channels[x][0])
+            await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
+            cursor.execute("DELETE FROM alert WHERE time=?", (now,))
+            database.commit()
+    else:
+        pass
+    await asyncio.sleep(59)
+    await timecheck()
+
+
 async def fuckin(message):
     fuckin = random.randint(1, 500)
     if fuckin == 1:
@@ -195,8 +248,9 @@ words_sorted = [sorted(word) for word in words]
 
 database = sqlite3.connect("extras/buttybot.db")
 cursor = database.cursor()
-# print(cursor.execute("select name from sqlite_master where type='table'").fetchall())
-# cursor.execute('CREATE TABLE todolistserver(id, ids, task)')
+# print(cursor.execute("select * from sqlite_master where type='table'").fetchall())
+# cursor.execute('CREATE TABLE alert(user, channel, time, message, repeat)')
+# cursor.execute('ALTER TABLE alert ADD COLUMN id')
 # database.commit()
 
 
@@ -206,7 +260,8 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-    await client.change_presence(game=discord.Game(name="the real butty, no matter what they say"))
+    await client.change_presence(game=discord.Game(name="[help for help | harru.club"))
+    await timecheck()
     #with open("butty.png", "rb") as file:
         #await client.edit_profile(avatar=file.read())
         #this changes the avatar
@@ -253,7 +308,7 @@ async def on_message(message):
             await client.send_message(message.channel, "$balance")
 
         elif command == "[invite":
-            reply = 'https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions=60'
+            reply = 'https://harru.club/invite'
             await client.send_message(message.channel, reply)
 
         elif command == "[yt":
@@ -500,13 +555,18 @@ async def on_message(message):
 
         elif command == "[anagram":
             mode = random.randint(1,2)
-            if mode == 1:
-                await anagram(words, words_sorted, client, message, "stalin")
-            else:
-                await anagram(words, words_sorted, client, message, "notstalin")
+            await anagram(words, words_sorted, client, message, mode)
 
-        elif command == '[test':
-            pass
+        elif command == '[remindme':
+            await future(message, "no")
+        elif command == "[showreminders":
+            list = []
+            reminders = cursor.execute("SELECT message FROM alert WHERE user=?", (message.author.id,)).fetchall()
+            for x in range(0, len(reminders)):
+                list.append(reminders[x][0])
+            for x in range(0, len(list)):
+                list[x] = str(x + 1) + ": " + list[x] + "\n"
+            await client.send_message(message.channel, "<@" + message.author.id + ">'s reminders:\n" + ''.join(list))
 
     if command == "[togglecommands" and is_admin(message):
         blacklisted = channel.toogle_blacklist()
