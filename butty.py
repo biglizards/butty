@@ -147,19 +147,19 @@ async def makeLogs(message, search="", send=True):
                                content="here's your logs.\nstop making me do this\nit hurts so much inside")
         file.close()
     else:
-        filename = ("extras/" + message.server.name
-                    + "/searches/"
-                    + search
-                    + ".search")
         results = []
         with open(filename, "r", encoding='utf-8') as file:
             for line in file:
                 if search in line:
                     results.append(line)
-        with open("extras/" + search + ".search", "w", encoding='utf-8') as file:
+        filename = ("extras/" + message.server.name
+                        + "/searches/"
+                        + search
+                        + ".search")
+        with open(filename, "w", encoding='utf-8') as file:
             for result in results:
                 file.write(result + "\n")
-        await client.send_file(message.channel, "extras/" + search + ".search", content="here're the results")
+        await client.send_file(message.channel, filename, content="here're the results")
 
 
 async def future(message, repeat):
