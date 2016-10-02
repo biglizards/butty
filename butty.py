@@ -153,7 +153,6 @@ async def makeLogs(message, search="", send=True):
                 if search in line:
                     results.append(line)
         filename = ("extras/" + message.server.name
-                        + "/searches/"
                         + search
                         + ".search")
         with open(filename, "w", encoding='utf-8') as file:
