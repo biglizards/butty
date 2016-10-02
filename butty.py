@@ -25,8 +25,8 @@ import logging
 
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='/extras/discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -237,6 +237,10 @@ async def on_message(message):
 
         if command == "[help":
             await buttyhelp(message)
+
+        elif command == "[getlogs":
+            if is_admin(message):
+                await client.send_file(message.channel, "extras/discord.log")
 
         elif command == "[bet":
             number = random.randint(100, 5000)
