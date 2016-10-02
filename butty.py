@@ -9,6 +9,7 @@ from buttymodules import *
 # from bs4 import BeautifulSoup
 # import urllib
 import os
+import logging
 # import sys
 # import re
 # import threading
@@ -21,6 +22,13 @@ import os
 # update the help section
 # whole server to do lists
 # aaaa it highlighted again
+
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 
 class Server:
