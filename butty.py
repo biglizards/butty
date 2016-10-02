@@ -28,7 +28,7 @@ import asyncio
 
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 handler = logging.FileHandler(filename='extras/discord.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
@@ -85,7 +85,7 @@ async def buttyhelp(message):
                               + '**Anything while chat mode is enabled** - I will talk back')
 
 
-async def makeLogs(message, send=True):
+async def makeLogs(message, search="", send=True):
     global logs
     logs = []
     if not os.path.exists('extras/' + message.server.name):
@@ -147,7 +147,19 @@ async def makeLogs(message, send=True):
                                content="here's your logs.\nstop making me do this\nit hurts so much inside")
         file.close()
     else:
-        return filename
+        filename = ("extras/" + message.server.name
+                    + "/searches/"
+                    + search
+                    + ".search")
+        results = []
+        with open(filename, "r", encoding='utf-8') as file:
+            for line in file:
+                if search in line:
+                    results.append(line)
+        with open("extras/" + search + ".search", "w", encoding='utf-8') as file:
+            for result in results:
+                file.write(result + "\n")
+        await client.send_file(message.channel, "extras/" + search + ".search", content="here're the results")
 
 
 async def future(message, repeat):
@@ -294,7 +306,7 @@ async def on_message(message):
             await buttyhelp(message)
 
         elif command == "[getlogs":
-            if is_admin(message):
+            if message.author.id == "135483608491229184" or message.author.id == "135496683009081345":
                 await client.send_file(message.channel, "extras/discord.log")
 
         elif command == "[bet":
@@ -303,6 +315,9 @@ async def on_message(message):
 
         elif command == "[logs":
             await makeLogs(message)
+
+        elif command == "[find":
+            await makeLogs(message, search=' '.join(args), send=False)
 
         elif command == "[balance":
             await client.send_message(message.channel, "$balance")
