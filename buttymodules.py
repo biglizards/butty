@@ -65,6 +65,7 @@ async def cleverchat(message, client, cb):
         time.sleep(1.5)
         await client.send_message(message.channel, response)
 
+
 async def togglecommand(client, command, message, cursor, database, blacklist):
     if command == "[togglecommands":
         if is_admin(message):
@@ -81,7 +82,7 @@ async def togglecommand(client, command, message, cursor, database, blacklist):
 
 
 async def anagram(words, words_sorted, client, message, mode):
-    if mode == "stalin":
+    if mode == 1:
         while True:
             word = random.choice(words)
             print(word)
