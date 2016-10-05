@@ -554,7 +554,7 @@ async def on_message(message):
                             server.player = await server.voice.create_ytdl_player(result)
                             server.player.start()
                             server.searching = False
-                            await client.send_message(message.channel, "Now playing: `" + server.player.title() + "`")
+                            await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
                     else:
                         await client.send_message(message.channel, "You haven't joined a voice channel")
 
