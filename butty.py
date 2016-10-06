@@ -251,8 +251,6 @@ client = discord.Client()
 servers = {}
 
 
-bugchannel = client.get_channel("233699709846290432")
-print(bugchannel)
 
 
 if not os.path.exists('extras'):
@@ -277,6 +275,8 @@ async def on_ready():
     print(client.user.id)
     print('------')
     await client.change_presence(game=discord.Game(name="[help for help | harru.club"))
+    bugchannel = client.get_channel("233699709846290432")
+    print(bugchannel)
     await timecheck()
     #with open("butty.png", "rb") as file:
         #await client.edit_profile(avatar=file.read())
