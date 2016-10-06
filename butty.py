@@ -252,6 +252,7 @@ servers = {}
 
 
 bugchannel = client.get_channel("233699709846290432")
+print(bugchannel)
 
 
 if not os.path.exists('extras'):
@@ -572,7 +573,7 @@ async def on_message(message):
             await client.send_message(bugchannel, ' '.join(msg[1:]))
 
         elif command == "[stats":
-            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers, feeding " + str(len(client.users)) + "users")
+            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers, feeding " + str(len(client.get_all_members())) + "users")
 
         elif command == "[anagram":
             mode = random.randint(1,2)
