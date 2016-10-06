@@ -281,7 +281,6 @@ async def on_ready():
         #this changes the avatar
 
 memberlist = []
-bugchannel = client.get_channel("233699709846290432")
 
 
 @client.event
@@ -571,13 +570,14 @@ async def on_message(message):
                     await client.send_message(message.channel, "You aren't playing anything")
 
         elif command == "[bug":
+            bugchannel = client.get_channel("233699709846290432")
             await client.send_message(bugchannel, ' '.join(msg[1:]))
 
         elif command == "[stats":
             for server in client.servers:
                 for member in server.members:
                     memberlist.append(1)
-            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers, feeding " + str(len(memberlist)) + "users")
+            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers, feeding " + str(len(memberlist)) + " users")
 
         elif command == "[anagram":
             mode = random.randint(1,2)
