@@ -280,7 +280,6 @@ async def on_ready():
         #await client.edit_profile(avatar=file.read())
         #this changes the avatar
 
-memberlist = []
 
 
 @client.event
@@ -577,6 +576,7 @@ async def on_message(message):
                 await client.send_message(message.channel, "Please report the bug to a Server Admin so they can report it, just so this doesn't get spammed")
 
         elif command == "[stats":
+            memberlist = []
             for server in client.servers:
                 for member in server.members:
                     memberlist.append(1)
