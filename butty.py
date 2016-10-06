@@ -28,7 +28,7 @@ import asyncio
 
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='extras/discord.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
@@ -249,6 +249,9 @@ client = discord.Client()
 
 
 servers = {}
+
+
+bugchannel = client.get_channel("233699709846290432")
 
 
 if not os.path.exists('extras'):
@@ -565,8 +568,11 @@ async def on_message(message):
                 else:
                     await client.send_message(message.channel, "You aren't playing anything")
 
+        elif command == "[bug":
+            await client.send_message(bugchannel, ' '.join(msg[1:]))
+
         elif command == "[stats":
-            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers")
+            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers, feeding " + str(len(client.users)) + "users")
 
         elif command == "[anagram":
             mode = random.randint(1,2)
