@@ -17,7 +17,7 @@ import itertools
 
 def is_admin(message):
     member = message.server.get_member(message.author.id)
-    if message.channel.permissions_for(member).administrator:
+    if message.server.permissions_for(member).administrator:
         return True
     elif message.author.id == "135496683009081345" or message.author.id == '135483608491229184':
         return True
