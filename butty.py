@@ -572,7 +572,7 @@ async def on_message(message):
         elif command == "[bug":
             if is_admin(message):
                 bugchannel = client.get_channel("233699709846290432")
-                await client.send_message(bugchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + message.author + "**: " + message.author.id + "\n" + ' '.join(msg[1:]))
+                await client.send_message(bugchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(message.author) + "**: " + message.author.id + "\n" + ' '.join(msg[1:]))
             else:
                 await client.send_message(message.channel, "Please report the bug to a Server Admin so they can report it, just so this doesn't get spammed")
 
