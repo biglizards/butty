@@ -275,12 +275,13 @@ async def on_ready():
     print(client.user.id)
     print('------')
     await client.change_presence(game=discord.Game(name="[help for help | harru.club"))
-    global bugchannel
-    bugchannel = client.get_channel("233699709846290432")
     await timecheck()
     #with open("butty.png", "rb") as file:
         #await client.edit_profile(avatar=file.read())
         #this changes the avatar
+
+memberlist = []
+bugchannel = client.get_channel("233699709846290432")
 
 
 @client.event
@@ -573,7 +574,10 @@ async def on_message(message):
             await client.send_message(bugchannel, ' '.join(msg[1:]))
 
         elif command == "[stats":
-            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers, feeding " + str(len(client.get_all_members())) + "users")
+            for server in client.servers:
+                for member in server.members:
+                    memberlist.append(1)
+            await client.send_message(message.channel, "I am currently being a sandwich in " + str(len(client.servers)) + " servers, feeding " + str(len(memberlist)) + "users")
 
         elif command == "[anagram":
             mode = random.randint(1,2)
