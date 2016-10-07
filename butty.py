@@ -284,7 +284,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    print(message.author.server_permissions.administrator)
+    print(message.author.server_permissions.manage_server)
     try:
         server = servers[message.server.id]
     except KeyError:
