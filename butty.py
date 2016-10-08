@@ -86,6 +86,7 @@ async def buttyhelp(message):
 
 
 async def makeLogs(message, search="", send=True):
+    print("im doing a thing fuck off")
     global logs
     logs = []
     if not os.path.exists('extras/' + message.server.name):
@@ -111,6 +112,8 @@ async def makeLogs(message, search="", send=True):
                 else:
                     f.seek(-3, 1)  # go back past the newline
     foundit = False
+    print("hey look a fucking thing")
+    print(line)
     async for message2 in client.logs_from(message.channel, limit=999999999999999):
         tolog = (message2.timestamp.strftime('%Y-%m-%d %H:%M:%S')
                  + message2.timestamp.strftime('.%f')[0:-3]  # miliseconds
@@ -284,7 +287,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    print(message.author.server_permissions.manage_server)
+    #print(message.author.server_permissions.manage_server)
     try:
         server = servers[message.server.id]
     except KeyError:
