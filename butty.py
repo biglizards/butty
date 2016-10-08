@@ -27,11 +27,12 @@ import asyncio
 # update the help section
 
 
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='extras/discord.log', encoding='utf-8', mode='a')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
+#logger = logging.getLogger('discord')
+#logger.setLevel(logging.DEBUG)
+#metalogname = 'extras/metalogs/' + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + ".log"
+#handler = logging.FileHandler(filename=metalogname, encoding='utf-8', mode='a')
+#handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+#logger.addHandler(handler)
 
 
 class Server:
