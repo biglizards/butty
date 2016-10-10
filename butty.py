@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import discord
 from foaas import fuck
 # import asyncio
@@ -26,10 +27,12 @@ import asyncio
 # finish anagram game
 # update the help section
 
+sd = os.path.dirname(os.path.realpath(__file__)) + "/"
+print(sd)
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='extras/discord.log', encoding='utf-8', mode='a')
+handler = logging.FileHandler(filename=sd+'extras/discord.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -88,9 +91,9 @@ async def buttyhelp(message):
 async def makeLogs(message, search="", send=True):
     global logs
     logs = []
-    if not os.path.exists('extras/' + message.server.name):
-        os.makedirs('extras/' + message.server.name)
-    filename = ("extras/" + message.server.name
+    if not os.path.exists(sd+'extras/' + message.server.name):
+        os.makedirs(sd+'extras/' + message.server.name)
+    filename = (sd+"extras/" + message.server.name
                 + "/"
                 + message.channel.name
                 + ".new.log")
@@ -152,7 +155,7 @@ async def makeLogs(message, search="", send=True):
             for line in file:
                 if search in line:
                     results.append(line)
-        filename = ("extras/" + message.server.name
+        filename = (sd+"extras/" + message.server.name
                         + "/"
                         + search
                         + ".search")
@@ -253,14 +256,14 @@ servers = {}
 
 
 
-if not os.path.exists('extras'):
-    os.makedirs('extras')
+if not os.path.exists(sd+'extras'):
+    os.makedirs(sd+'extras')
 
-with open('extras/corncob_lowercase.txt', 'r') as file:
+with open(sd+'extras/corncob_lowercase.txt', 'r') as file:
     words = file.read().splitlines()
 words_sorted = [sorted(word) for word in words]
 
-database = sqlite3.connect("extras/buttybot.db")
+database = sqlite3.connect(sd+"extras/buttybot.db")
 cursor = database.cursor()
 # print(cursor.execute("select * from sqlite_master where type='table'").fetchall())
 # cursor.execute('CREATE TABLE alert(user, channel, time, message, repeat)')
@@ -311,7 +314,7 @@ async def on_message(message):
 
         elif command == "[getlogs":
             if message.author.id == "135483608491229184" or message.author.id == "135496683009081345":
-                await client.send_file(message.channel, "extras/discord.log")
+                await client.send_file(message.channel, sd+"extras/discord.log")
 
         elif command == "[bet":
             number = random.randint(100, 5000)
@@ -526,8 +529,8 @@ async def on_message(message):
                                         voice_channel = x
                                 if not voice_channel:
                                     await client.send_message(message.channel, "No voice channels could be found. Does butty have the required perms?")
-                    # discord.opus.load_opus("extras/opus.dll")
-                    discord.opus.load_opus("extras/opus.so")
+                    # discord.opus.load_opus(sd+"extras/opus.dll")
+                    discord.opus.load_opus(sd+"extras/opus.so")
                     if not voice_channel:
                         return None
                     voice = await client.join_voice_channel(voice_channel)
@@ -607,9 +610,9 @@ async def on_message(message):
             await client.send_message(message.channel, "Commands enabled")
 
 
-
+print("kkk")
 try:
-    with open("extras/token", 'r') as Token:
+    with open(sd+"extras/token", 'r') as Token:
         token = Token.read()
         client.run(token)
 except FileNotFoundError:
