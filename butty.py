@@ -267,6 +267,17 @@ async def stats(message, args):
                                                 + " servers, feeding " + str(total) + " users"))
 
 
+async def salsa(message, args):
+    server = servers[message.server.id]
+    voice = server.voice
+    while True:
+        res = str(' '.join(args[1:]))
+        result = youtube(res)
+        server.player = await server.voice.create_ytdl_player(result)
+        server.player.start()
+        server.searching = False
+        await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
+    
 async def stats_secret(message, args):
     if not is_admin(message):
         return
