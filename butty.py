@@ -12,7 +12,6 @@ import discord
 import parsedatetime.parsedatetime
 from cleverbot import Cleverbot
 from dateutil.relativedelta import relativedelta
-from foaas import fuck
 from pytz import timezone
 
 from buttymodules import *
@@ -34,7 +33,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck', 'flip', 'roll', 'todo', 't', 'gt',
-                  'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'lmddgtfy', 'say', 'bug', 'stats',
+                  'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
                   'stats_secret', 'anagram', 'remindme', 'reminders']
 
 
@@ -130,7 +129,6 @@ async def on_message(message):
         # react to non-command messages.
         if channel.cb:
             await cleverchat(message, client, channel.cb)
-        await fuckin(message)
         await butty(message)
 
         if message.content[0] == '[' and command in valid_commands:
@@ -165,6 +163,7 @@ async def chat(message, args):
 
 
 async def anagram(message, args):
+    await client.send_message(message.channel, "Woo i pulled")
     while True:
         word = random.choice(words)
         print(word)
@@ -704,30 +703,16 @@ async def timecheck():
     await timecheck()
 
 
-async def fuckin(message):
-    fuckin = random.randint(1, 500)
-    if fuckin == 1:
-        users1 = []
-        users = message.server.members
-        for user in users:
-            users1.append(user)
-        user1, user2 = random.choice(users1).name, random.choice(users1).name
-        await client.send_message(message.channel, (fuck.random(name=user1, from_=user2).text))
-
-
 async def butty(message):
     if message.author.id != "229223616217088001" and "butty" in message.content:
         await client.send_message(message.channel, "yes")
 
 
-async def lmddgtfy(message, args):
+async def duck(message, args):
     query = urllib.parse.quote(' '.join(args[0:]))
     result = "http://lmddgtfy.net/?q=" + query
     await client.send_message(message.channel, result)
 
-
-async def duck(message, args):
-    await lmddgtfy(message, args)
 
 
 try:
