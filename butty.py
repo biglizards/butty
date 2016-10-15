@@ -136,8 +136,7 @@ async def makeLogs(message, search="", send=True):
         logs.append(tolog)
     if not foundit and line:
         await client.send_message(message.channel,
-                                  'something went wrong: last message not found\nsomeone probably deleted it\n(the bot now needs someone to press enter; it\'s frozen)')
-        input()
+                                  'something went wrong: last message not found\nsomeone probably deleted it')
     file = open(filename, mode="a", encoding='utf-8')
     for message2 in reversed(logs):
         file.write(message2)
