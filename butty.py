@@ -163,7 +163,6 @@ async def chat(message, args):
 
 
 async def anagram(message, args):
-    await client.send_message(message.channel, " now final check")
     while True:
         word = random.choice(words)
         print(word)
