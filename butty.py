@@ -19,7 +19,7 @@ from buttymodules import *
 # to do list:
 # oh god the text is highlighted what
 # repeated + deleting alerts
-# finish anagram game
+# finish game
 # update the help section
 # fix code
 
@@ -163,7 +163,7 @@ async def chat(message, args):
 
 
 async def anagram(message, args):
-    await client.send_message(message.channel, "Woo i pulled")
+    await client.send_message(message.channel, "lets hope this works")
     while True:
         word = random.choice(words)
         print(word)
