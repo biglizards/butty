@@ -714,7 +714,7 @@ async def duck(message, args):
 
 async def restart(message, args):
     if message.author.id == "135496683009081345" or message.author.id == '135483608491229184':
-        os.system("echo test > test && git pull && systemctl restart butty && echo 'more test' > moreTest")
+        os.system("git pull && systemctl restart butty")
 
 try:
     with open("extras/token", 'r') as Token:
