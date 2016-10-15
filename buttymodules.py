@@ -1,13 +1,11 @@
-import urllib.request
-import urllib.parse
-import urllib
 import os
-import time
-import sys
 import re
-import random
-import math
-import itertools
+import time
+import urllib
+import urllib.parse
+import urllib.request
+
+
 #from cleverbot import Cleverbot
 #import threading
 #import asyncio
@@ -33,7 +31,9 @@ def should_remove(m):
         return False
 
 
-def restart(message):
+def restart(message, args):
+    # FIX THIS
+    return
     if message.author.id == "135496683009081345" or message.author.id == '135483608491229184':
         os.system("git pull && python3 butty.py")
 
@@ -56,7 +56,7 @@ def youtube(search, result_number=1):
 async def cleverchat(message, client, cb):
     if message.author.bot:
         pass
-    elif should_remove(message):
+    if should_remove(message):
         pass
     else:
         response = cb.ask(message.content)
@@ -78,100 +78,3 @@ async def togglecommand(client, command, message, cursor, database, blacklist):
         else:
             await client.send_message(message.channel, "You don't have permission to do this")
         await client.delete_message(message)
-
-
-async def anagram(words, words_sorted, client, message, mode):
-    if mode == 1:
-        while True:
-            word = random.choice(words)
-            print(word)
-            # word = "scuttles"
-            # word = input().strip(",.!?'" + '"( )').lower().replace(" ", "").replace("'", "")
-            letters = sorted(word)
-            # print(word)
-            matches = []
-            start = time.clock()
-            if words_sorted.count(letters) > 1:
-                for x in words:
-                    if letters == sorted(x) and word != x:
-                        matches.append(x)
-            if matches:
-                print(matches)
-                continue
-            else:
-                # print("generating, please wait")
-                length = len(letters)
-                before_matches = []
-                after_matches = []
-                end = 0
-                for space in range(1, math.ceil((length + 1) / 2)):
-                    # print(space, "out of", math.ceil((length+1)/2)-1)
-                    if end:
-                        break
-                    lis = []
-                    for bs in itertools.combinations(letters, space):
-                        before = sorted(bs)
-                        if not before in lis:
-                            lis.append(before)  # get every unique combination
-                        else:
-                            continue
-                        after = letters[:]  # this is dumb
-                        for x in before:
-                            after.remove(x)
-                        if not sorted(after + before) == letters:
-                            print("ERROR: sorted(after + before) == letters FAILED")
-                        if not (after in words_sorted and before in words_sorted):
-                            continue  # at least one of them is not a valid word
-
-                        # ok we've got the words now, so we _could_ stop here
-                        # but i won't, because obviously we need additional complexity
-
-                        after_indexes = [i for i, x in enumerate(words_sorted) if x == after]
-                        before_indexes = [i for i, x in enumerate(words_sorted) if x == before]
-                        temp_before_matches = []
-                        temp_after_matches = []
-                        for x in after_indexes:
-                            temp_after_matches.append(words[x])
-                        for x in before_indexes:
-                            temp_before_matches.append(words[x])
-                        if time.clock() - start > 5 and after_matches and before_matches:
-                            print("going home early")
-                            end = True
-                            break
-                            # pass
-                        if temp_before_matches or temp_after_matches:
-                            before_matches.append(temp_before_matches)
-                            after_matches.append(temp_after_matches)
-            try:
-                for x in range(len(before_matches)):
-                    if sorted("".join(before_matches[x][0]) + "".join(after_matches[x][0])) != letters:
-                        print("".join(before_matches[x][0]), "".join(after_matches[x][0]), letters)
-                        # reply += str(before_matches[x]) + " " + str(after_matches[x]) + "\n"
-            except UnboundLocalError:
-                pass
-            try:
-                choice = random.randrange(int(len(before_matches) / 2))
-                reply = random.choice(before_matches[choice]) + " " + random.choice(
-                    after_matches[choice])  # + "   (%i others)" % len(before_matches)
-                # word + " --> " +
-                if not sorted(reply.replace(" ", "")) == letters:
-                    reply = "ERROR ERROR SOMETHING WENT WRONG"
-            except:
-                reply = "I can't do **%s**. Sorry about that." % word
-                continue
-            await client.send_message(message.channel, reply)
-            print(word, "-->", reply, time.clock() - start)
-            break
-    else:
-        word = random.choice(words)
-        print(word)
-        letters = []
-        for letter in word:
-            letters.append(letter)
-        anagramy = []
-        for x in range(0, len(letters)):
-            y = random.randint(0, len(letters) - 1)
-            anagramy.append(letters[y])
-            del letters[y]
-            anagram = ''.join(anagramy)
-        await client.send_message(message.channel, anagram)
