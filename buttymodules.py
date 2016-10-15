@@ -31,11 +31,6 @@ def should_remove(m):
         return False
 
 
-def restart(message, args):
-    if message.author.id == "135496683009081345" or message.author.id == '135483608491229184':
-        os.system("git pull && systemcl restart butty")
-
-
 def youtube(search, result_number=1):
     results = []
     query_string = urllib.parse.urlencode({"search_query": search})
