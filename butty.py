@@ -680,7 +680,11 @@ async def remindme(message, args):
     time = str(time)[:-16]
     cursor.execute("INSERT INTO alert VALUES(?, ?, ?, ?, ?, ?)", (message.author.id, message.channel.id, time, msg[1], "no", alertid))
     database.commit()
-    await client.send_message(message.channel, "Reminder set for " +  time + " UTC")
+    try:
+      await client.send_message(message.channel, "Reminder set for " +  time + " UTC")
+    except:
+      user = client.get_user_info(message.author.id)
+      await client.send_message(message.user, "Reminder set for " +  time + " UTC")
 
 async def delreminder(message, args):
     ids = int(args[0])
@@ -695,13 +699,21 @@ async def delreminder(message, args):
     for x in range(0, len(moveup)):
         cursor.execute("UPDATE alert SET id=? WHERE id=? AND user=?", ((moveup[x] - 1), moveup[x], user))
     database.commit()
-    await client.send_message(message.channel, "Deleted **" + removed[0][0] + "** from your reminder list")
+    try:
+      await client.send_message(message.channel, "Deleted **" + removed[0][0] + "** from your reminder list")
+    except:
+      user = client.get_user_info(message.author.id)
+      await client.send_message(user, "Deleted **" + removed[0][0] + "** from your reminder list")
     
 async def clearreminders(message, args):
     user = message.author.id
     cursor.execute("DELETE FROM alert WHERE user=?", (user,))
     database.commit()
-    await client.send_message(message.channel, "Your reminders have been cleared")
+    try:
+      await client.send_message(message.channel, "Your reminders have been cleared")
+    except:
+      user = client.get_user_info(message.author.id)
+      await client.send_message(user, "Your reminders have been cleared")
 
 async def timecheck():
     now = str(datetime.now(timezone('UTC')))[:-16]
