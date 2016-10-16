@@ -695,7 +695,7 @@ async def delreminder(message, args):
     for x in range(0, len(moveup)):
         cursor.execute("UPDATE alert SET id=? WHERE id=? AND user=?", ((moveup[x] - 1), moveup[x], user))
     database.commit()
-    await client.send_message(message.channel, "Deleted" + removed[0][0] + "** from your reminder list")
+    await client.send_message(message.channel, "Deleted **" + removed[0][0] + "** from your reminder list")
     
 async def clearreminders(message, args):
     user = message.author.id
