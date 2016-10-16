@@ -34,7 +34,7 @@ os.chdir(real_path)
 
 valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck', 'flip', 'roll', 'todo', 't', 'gt',
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
-                  'stats_secret', 'anagram', 'remindme', 'reminders', 'delreminder']
+                  'stats_secret', 'anagram', 'remindme', 'reminders', 'delreminder', 'clearreminders']
 
 
 class Server:
