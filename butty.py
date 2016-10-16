@@ -686,7 +686,7 @@ async def delreminder(message, args):
     ids = int(args[1])
     moveup = []
     user = message.author.id
-    removed = (cursor.execute("SELECT alert FROM alert WHERE user=? AND id=?", (user, ids))).fetchall()
+    removed = (cursor.execute("SELECT message FROM alert WHERE user=? AND id=?", (user, ids))).fetchall()
     cursor.execute("DELETE FROM alert WHERE user=? AND id=?", (user, ids))
     newid = (cursor.execute("SELECT id FROM alert WHERE id=?", (user,))).fetchall()
     for x in range(0, len(newid)):
