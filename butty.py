@@ -697,9 +697,9 @@ async def delreminder(message, args):
     database.commit()
     await client.send_message(message.channel, "Deleted" + removed[0][0] + "** from your reminder list")
     
-async def clearreminders(message):
+async def clearreminders(message, args):
     user = message.author.id
-    cursor.execute("DELETE FROM alert WHERE id=?", (user,))
+    cursor.execute("DELETE FROM alert WHERE user=?", (user,))
     database.commit()
     await client.send_message(message.channel, "Your reminders have been cleared")
 
