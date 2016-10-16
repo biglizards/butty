@@ -683,19 +683,19 @@ async def remindme(message, args):
     await client.send_message(message.channel, "Reminder set for " +  time + " UTC")
 
 async def delreminder(message, args):
-        ids = int(args[1])
-        moveup = []
-        user = message.author.id
-        removed = (cursor.execute("SELECT task FROM alert WHERE user=? AND id=?", (user, ids))).fetchall()
-        cursor.execute("DELETE FROM alert WHERE user=? AND id=?", (user, ids))
-        newid = (cursor.execute("SELECT ids FROM alert WHERE id=?", (user,))).fetchall()
-        for x in range(0, len(newid)):
-            if newid[x][0] > ids:
-                moveup.append(newid[x][0])
-        for x in range(0, len(moveup)):
-            cursor.execute("UPDATE alert SET id=? WHERE id=? AND user=?", ((moveup[x] - 1), moveup[x], user))
-        database.commit()
-        await client.send_message(message.channel, "Removed **" + removed[0][0] + "** from your list")
+    ids = int(args[1])
+    moveup = []
+    user = message.author.id
+    removed = (cursor.execute("SELECT task FROM alert WHERE user=? AND id=?", (user, ids))).fetchall()
+    cursor.execute("DELETE FROM alert WHERE user=? AND id=?", (user, ids))
+    newid = (cursor.execute("SELECT id FROM alert WHERE id=?", (user,))).fetchall()
+    for x in range(0, len(newid)):
+        if newid[x][0] > ids:
+            moveup.append(newid[x][0])
+    for x in range(0, len(moveup)):
+        cursor.execute("UPDATE alert SET id=? WHERE id=? AND user=?", ((moveup[x] - 1), moveup[x], user))
+    database.commit()
+    await client.send_message(message.channel, "Removed **" + removed[0][0] + "** from your list")
     
 
 
@@ -710,8 +710,6 @@ async def timecheck():
             await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
             cursor.execute("DELETE FROM alert WHERE time=?", (now,))
             database.commit()
-    else:
-        pass
     await asyncio.sleep(59)
     await timecheck()
 
