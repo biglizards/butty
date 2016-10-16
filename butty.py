@@ -653,7 +653,6 @@ async def find(message, args):
 
 async def remindme(message, args):
     msg = message.content.split(",", 1)
-    repeat = "no"
     cal = parsedatetime.Calendar()
     time = datetime.now(timezone('UTC'))
     currenttime = cal.parse(str(time))[0]
@@ -679,9 +678,25 @@ async def remindme(message, args):
         else:
             pass
     time = str(time)[:-16]
-    cursor.execute("INSERT INTO alert VALUES(?, ?, ?, ?, ?, ?)", (message.author.id, message.channel.id, time, msg[1], repeat, alertid))
+    cursor.execute("INSERT INTO alert VALUES(?, ?, ?, ?, ?, ?)", (message.author.id, message.channel.id, time, msg[1], "no", alertid))
     database.commit()
     await client.send_message(message.channel, "Reminder set for " +  time + " UTC")
+
+async def delreminder(message, args):
+        ids = int(args[1])
+        moveup = []
+        user = message.author.id
+        removed = (cursor.execute("SELECT task FROM alert WHERE user=? AND id=?", (user, ids))).fetchall()
+        cursor.execute("DELETE FROM alert WHERE user=? AND id=?", (user, ids))
+        newid = (cursor.execute("SELECT ids FROM alert WHERE id=?", (user,))).fetchall()
+        for x in range(0, len(newid)):
+            if newid[x][0] > ids:
+                moveup.append(newid[x][0])
+        for x in range(0, len(moveup)):
+            cursor.execute("UPDATE alert SET id=? WHERE id=? AND user=?", ((moveup[x] - 1), moveup[x], user))
+        database.commit()
+        await client.send_message(message.channel, "Removed **" + removed[0][0] + "** from your list")
+    
 
 
 async def timecheck():
