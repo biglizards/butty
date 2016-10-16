@@ -26,15 +26,15 @@ from buttymodules import *
 real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 os.chdir(real_path)
 
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='extras/metalogs/discord.log', encoding='utf-8', mode='a')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
+#logger = logging.getLogger('discord')
+#logger.setLevel(logging.DEBUG)
+#handler = logging.FileHandler(filename='extras/metalogs/discord.log', encoding='utf-8', mode='a')
+#handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+#logger.addHandler(handler)
 
 valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck', 'flip', 'roll', 'todo', 't', 'gt',
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
-                  'stats_secret', 'anagram', 'remindme', 'reminders', 'salsa']
+                  'stats_secret', 'anagram', 'remindme', 'reminders', 'delreminder']
 
 
 class Server:
@@ -90,7 +90,7 @@ database = sqlite3.connect("extras/buttybot.db")
 cursor = database.cursor()
 
 
-# print(cursor.execute("select * from sqlite_master where type='table'").fetchall())
+print(cursor.execute("select * from sqlite_master where type='table'").fetchall())
 # cursor.execute('CREATE TABLE alert(user, channel, time, message, repeat)')
 # cursor.execute('ALTER TABLE alert ADD COLUMN id')
 # database.commit()
@@ -683,7 +683,7 @@ async def remindme(message, args):
     await client.send_message(message.channel, "Reminder set for " +  time + " UTC")
 
 async def delreminder(message, args):
-    ids = int(args[1])
+    ids = int(args[0])
     moveup = []
     user = message.author.id
     removed = (cursor.execute("SELECT message FROM alert WHERE user=? AND id=?", (user, ids))).fetchall()
@@ -695,9 +695,13 @@ async def delreminder(message, args):
     for x in range(0, len(moveup)):
         cursor.execute("UPDATE alert SET id=? WHERE id=? AND user=?", ((moveup[x] - 1), moveup[x], user))
     database.commit()
-    await client.send_message(message.channel, "Removed **" + removed[0][0] + "** from your list")
+    await client.send_message(message.channel, "Deleted" + removed[0][0] + "** from your reminder list")
     
-
+async def clearreminders(message):
+    user = message.author.id
+    cursor.execute("DELETE FROM alert WHERE id=?", (user,))
+    database.commit()
+    await client.send_message(message.channel, "Your reminders have been cleared")
 
 async def timecheck():
     now = str(datetime.now(timezone('UTC')))[:-16]
