@@ -388,7 +388,7 @@ async def voice(message, args):
 
 async def bug(message, args):
     if is_admin(message):
-        bug_channel = client.get_channel("233699709846290432")
+        bug_channel = client.get_channel("237608068630839296")
         await client.send_message(bug_channel,
                                   "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
                                       message.author) + "**: " + message.author.id + "\n" + ' '.join(args[0:]))
