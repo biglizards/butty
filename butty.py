@@ -144,14 +144,14 @@ async def on_message(message):
     if not channel.blacklisted:
         # react to non-command messages.
         if channel.cb:
-        loggingchannel = client.get_channel("237599514448494592")
-        await client.send_message(loggingchannel, message.content)
+            loggingchannel = client.get_channel("237599514448494592")
+            await client.send_message(loggingchannel, message.content)
             await cleverchat(message, client, channel.cb)
         await butty(message)
 
         if message.content[0] == '[' and command in valid_commands:
-          loggingchannel = client.get_channel("237599514448494592")
-          await client.send_message(loggingchannel, message.content)
+            loggingchannel = client.get_channel("237599514448494592")
+            await client.send_message(loggingchannel, message.content)
             command = eval(command)
             await command(message, args)
 
