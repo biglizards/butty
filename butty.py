@@ -36,6 +36,20 @@ valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck'
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
                   'stats_secret', 'anagram', 'remindme', 'reminders', 'delreminder', 'clearreminders']
 
+helplist = {"help": "shows the command list, or a specific command", "stats": "shows Butty's stats", "invite": "gets the invite link",
+            "togglebutty": "disable Butty in a channel", "bug": "reports a bug",
+            "clean": "deletes any messages starting with '[' or said by Butty in the last <a number> messages",
+            "purge": "deletes any messages starting with '[' or said by Butty in the last <a number> messages",
+            "yt": "searches youtube and sends the link in the chat",
+            "logs": "makes a text file of the logs and attempts to send it (unless it's over 8mb because that's discord's limit)",
+            "find": "returns a text file with every message containing your word (unless it's over 8mb because that's discord's limit)",
+            "remindme": "create a reminder for yourself, it will then @ you after the amount of time specified has run out (e.g. '[remindme 1 hour 30 minutes, this is a reminder' - remember to use a comma to separate the time and the message)"
+            "reminders": "shows a list of your current reminders, with a number",
+            "delreminder": "deletes a reminder with the corresponding number",
+            "clearreminders": "clears all of your reminders",
+            "todo": "thing",
+           }
+
 
 class Server:
     def __init__(self, message):
@@ -578,7 +592,7 @@ async def help(message, args):
                               "[reminders" - shows a list of your current reminders, with a number
                               "[delreminder <a number>" - deletes a reminder with the corresponding number
                               "[clearreminders" - clears all of your reminders
-
+                              
                               Todo list:
                               "[todo add <a message>" - adds something to your todo list
                               "[todo show" - shows your list
@@ -592,7 +606,7 @@ async def help(message, args):
                               "[voice play <a search>" - searches youtube for your search and plays the first result. Works better the more accurate you are with the video title
                               "[voice stop" - stops the current song
                               "[voice <pause or resume>" - pauses or resumes the song
-
+                              
                               Fun:
                               "[flip" - flips a coin
                               "[roll <a number> <number of dice to roll up to 10>" - rolls <a number> sided dice
