@@ -129,7 +129,8 @@ async def on_message(message):
         # react to non-command messages.
         if channel.cb:
             await cleverchat(message, client, channel.cb)
-        await butty(message)
+        # await butty(message)
+        #commented out because it's pretty spammy
 
         if message.content[0] == '[' and command in valid_commands:
             command = eval(command)
