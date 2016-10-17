@@ -592,7 +592,8 @@ async def help(message, args):
                               "[reminders" - shows a list of your current reminders, with a number
                               "[delreminder <a number>" - deletes a reminder with the corresponding number
                               "[clearreminders" - clears all of your reminders
-                              
+                              """)
+    await client.send_message(message.channel, """
                               Todo list:
                               "[todo add <a message>" - adds something to your todo list
                               "[todo show" - shows your list
