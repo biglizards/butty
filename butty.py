@@ -107,6 +107,7 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+    global loggingchannel
     await client.change_presence(game=discord.Game(name="[help for help [bug for bug reports | harru.club"))
     await timecheck()
     # with open("butty.png", "rb") as file:
@@ -143,10 +144,14 @@ async def on_message(message):
     if not channel.blacklisted:
         # react to non-command messages.
         if channel.cb:
+        loggingchannel = client.get_channel("237599514448494592")
+        await client.send_message(loggingchannel, message.content)
             await cleverchat(message, client, channel.cb)
         await butty(message)
 
         if message.content[0] == '[' and command in valid_commands:
+          loggingchannel = client.get_channel("237599514448494592")
+          await client.send_message(loggingchannel, message.content)
             command = eval(command)
             await command(message, args)
 
@@ -158,7 +163,7 @@ async def on_message(message):
             await client.send_message(message.channel, "Commands enabled")
 
 async def shadow(message, args):
-    # ok this is a really bas idea but hey why not
+    # ok this is a really bad idea but hey why not
     if not (message.author.id == "135496683009081345" or message.author.id == '135483608491229184'):
         return
     global shadowing
