@@ -597,7 +597,7 @@ async def balance(message, args):
 
 
 async def help(message, args):
-    await client.send_message(message.channel, """**Commands:**
+    await client.send_message(message.channel, """```**Commands:**
 
                               General:
                               "[help" - shows the command list in discord
@@ -617,8 +617,8 @@ async def help(message, args):
                               "[reminders" - shows a list of your current reminders, with a number
                               "[delreminder <a number>" - deletes a reminder with the corresponding number
                               "[clearreminders" - clears all of your reminders
-                              """)
-    await client.send_message(message.channel, """
+                              ```""")
+    await client.send_message(message.channel, """```
                               Todo list:
                               "[todo add <a message>" - adds something to your todo list
                               "[todo show" - shows your list
@@ -639,7 +639,7 @@ async def help(message, args):
                               "[say <a message" - makes Butty say <a message>
                               "[duck <search>" - Makes a "Let me DuckDuckGo that for you" link for te specified search
                               "[chat <start or stop>" - enables or disables chat mode. Can get fairly spammy if lots of people are using it
-                              """)
+                              ```""")
 
 
 async def logs(message, search="", send=True):
