@@ -7,6 +7,8 @@ from datetime import datetime
 import random
 import math
 import itertools
+import re
+import string
 
 import discord
 import parsedatetime.parsedatetime
@@ -34,22 +36,9 @@ logger.addHandler(handler)
 
 valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck', 'flip', 'roll', 'todo', 't', 'gt',
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
-                  'stats_secret', 'anagram', 'remindme', 'reminders', 'delreminder', 'clearreminders']
+                  'stats_secret', 'anagram', 'remindme', 'reminders', 'shadow']
 
-helplist = {"help": "shows the command list, or a specific command", "stats": "shows Butty's stats", "invite": "gets the invite link",
-            "togglebutty": "disable Butty in a channel", "bug": "reports a bug",
-            "clean": "deletes any messages starting with '[' or said by Butty in the last <a number> messages",
-            "purge": "deletes any messages starting with '[' or said by Butty in the last <a number> messages",
-            "yt": "searches youtube and sends the link in the chat",
-            "logs": "makes a text file of the logs and attempts to send it (unless it's over 8mb because that's discord's limit)",
-            "find": "returns a text file with every message containing your word (unless it's over 8mb because that's discord's limit)",
-            "remindme": "create a reminder for yourself, it will then @ you after the amount of time specified has run out (e.g. '[remindme 1 hour 30 minutes, this is a reminder' - remember to use a comma to separate the time and the message)"
-            "reminders": "shows a list of your current reminders, with a number",
-            "delreminder": "deletes a reminder with the corresponding number",
-            "clearreminders": "clears all of your reminders",
-            "todo": "thing",
-           }
-
+alnum = re.compile('(?=[\W_])([^-])')
 
 class Server:
     def __init__(self, message):
@@ -93,6 +82,8 @@ client = discord.Client()
 
 servers = {}
 
+shadowing = None
+
 if not os.path.exists('extras'):
     os.makedirs('extras')
 
@@ -104,7 +95,7 @@ database = sqlite3.connect("extras/buttybot.db")
 cursor = database.cursor()
 
 
-print(cursor.execute("select * from sqlite_master where type='table'").fetchall())
+# print(cursor.execute("select * from sqlite_master where type='table'").fetchall())
 # cursor.execute('CREATE TABLE alert(user, channel, time, message, repeat)')
 # cursor.execute('ALTER TABLE alert ADD COLUMN id')
 # database.commit()
@@ -125,6 +116,16 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    if message.server == shadowing:
+        shadowing_host = client.get_server('237464178745409536')
+        channel = None
+        for x in shadowing_host.channels:
+            if alnum.sub('', x.name) == message.channel.name:
+                channel = x
+        try:
+            await client.send_message(channel, message.author.name + ": " + message.content)
+        except discord.errors.InvalidArgument:
+            print(message.channel.name, message.author.name, message.content)
     if message.author.bot:
         return
 
@@ -143,8 +144,7 @@ async def on_message(message):
         # react to non-command messages.
         if channel.cb:
             await cleverchat(message, client, channel.cb)
-        # await butty(message)
-        #commented out because it's pretty spammy
+        await butty(message)
 
         if message.content[0] == '[' and command in valid_commands:
             command = eval(command)
@@ -157,6 +157,24 @@ async def on_message(message):
         else:
             await client.send_message(message.channel, "Commands enabled")
 
+async def shadow(message, args):
+    # ok this is a really bas idea but hey why not
+    if not (message.author.id == "135496683009081345" or message.author.id == '135483608491229184'):
+        return
+    global shadowing
+    shadowing = client.get_server(args[0])
+    shadowing_host = client.get_server('237464178745409536')
+    old_channels = []
+    for channel in shadowing_host.channels:
+        old_channels.append(channel)
+    for channel in old_channels:
+        try:
+            await client.delete_channel(channel)
+        except:
+            pass
+    for x in shadowing.channels:
+        tmp_ch = await client.create_channel(shadowing_host, alnum.sub('', x.name), type=x.type)
+        await client.edit_channel(tmp_ch, topic=x.topic)
 
 async def reminders(message, args):
     reminder_list = cursor.execute("SELECT message FROM alert WHERE user=?", (message.author.id,)).fetchall()
@@ -280,7 +298,7 @@ async def stats(message, args):
         total += len(server.members)
     await client.send_message(message.channel, ("I am currently being a sandwich in " + str(len(client.servers))
                                                 + " servers, feeding " + str(total) + " users"))
-    
+
 async def stats_secret(message, args):
     if not is_admin(message):
         return
@@ -289,7 +307,7 @@ async def stats_secret(message, args):
         try:
             reply += "**%s:**" % server.name + " `" + str(await client.create_invite(server)).replace("/", "/ ") + "`\n"
         except discord.HTTPException:
-            reply += "**%s:**" % server.name + " `" + "[no perms]" + "`\n"
+            reply += "**%s:**" % server.name + " `" + server.id + "`\n"
     await client.send_message(message.channel, reply)
 
 
@@ -607,7 +625,7 @@ async def help(message, args):
                               "[voice play <a search>" - searches youtube for your search and plays the first result. Works better the more accurate you are with the video title
                               "[voice stop" - stops the current song
                               "[voice <pause or resume>" - pauses or resumes the song
-                              
+
                               Fun:
                               "[flip" - flips a coin
                               "[roll <a number> <number of dice to roll up to 10>" - rolls <a number> sided dice
@@ -749,7 +767,7 @@ async def delreminder(message, args):
     except:
       user = client.get_user_info(message.author.id)
       await client.send_message(user, "Deleted **" + removed[0][0] + "** from your reminder list")
-    
+
 async def clearreminders(message, args):
     user = message.author.id
     cursor.execute("DELETE FROM alert WHERE user=?", (user,))
@@ -771,13 +789,15 @@ async def timecheck():
             await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
             cursor.execute("DELETE FROM alert WHERE time=?", (now,))
             database.commit()
+    else:
+        pass
     await asyncio.sleep(59)
     await timecheck()
 
 
-# async def butty(message):
-#     if message.author.id != "229223616217088001" and "butty" in message.content:
-#         await client.send_message(message.channel, "yes")
+async def butty(message):
+    if message.author.id != "229223616217088001" and "butty" in message.content and message.server.id != '110373943822540800':
+        await client.send_message(message.channel, "yes")
 
 
 async def duck(message, args):
