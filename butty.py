@@ -135,7 +135,7 @@ async def on_message(message):
             command = eval(command)
             await command(message, args)
 
-    if msg[0] == "[togglecommands" and is_admin(message):
+    if msg[0] == "[togglebutty" and is_admin(message):
         blacklisted = channel.toogle_blacklist()
         if blacklisted:
             await client.send_message(message.channel, "Commands Disabled")
