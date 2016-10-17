@@ -599,46 +599,46 @@ async def balance(message, args):
 async def help(message, args):
     await client.send_message(message.channel, """```**Commands:**
 
-                              General:
-                              "[help" - shows the command list in discord
-                              "[stats" - shows Butty's Stats
-                              "[invite" - Gets the invite link
-                              "[toggle" - disable Butty in a channel
-                              "[bug <a message>" - reports a bug (only people with manage server permissions can do this"
-                              "[clean <a number" or "[purge <a number>" - deletes any messages starting with "[" or said by Butty in the last <a number> messages
+General:
+"[help" - shows the command list in discord
+"[stats" - shows Butty's Stats
+"[invite" - Gets the invite link
+"[toggle" - disable Butty in a channel
+"[bug <a message>" - reports a bug (only people with manage server permissions can do this"
+"[clean <a number" or "[purge <a number>" - deletes any messages starting with "[" or said by Butty in the last <a number> messages
 
-                              Useful:
-                              "[yt <a search>" - searches youtube and pastes the link in the chat
-                              "[logs" - makes a text file of the logs and attempts to send it (unless it's over 8mb because that's discord's limit)
-                              "[find <a search>" - returns a text file with every message containing your word (unless it's over 8mb because that's discord's limit)
+Useful:
+"[yt <a search>" - searches youtube and pastes the link in the chat
+"[logs" - makes a text file of the logs and attempts to send it (unless it's over 8mb because that's discord's limit)
+"[find <a search>" - returns a text file with every message containing your word (unless it's over 8mb because that's discord's limit)
 
-                              Reminders:
-                              "[remindme <a time>, <a message>" - create a reminder for yourself, it will then @ you after the amount of time specified has run out (e.g. "[remindme 1 hour 30 minutes, this is a reminder" - remember to use a comma to separate the time and the message)
-                              "[reminders" - shows a list of your current reminders, with a number
-                              "[delreminder <a number>" - deletes a reminder with the corresponding number
-                              "[clearreminders" - clears all of your reminders
+Reminders:
+"[remindme <a time>, <a message>" - create a reminder for yourself, it will then @ you after the amount of time specified has run out (e.g. "[remindme 1 hour 30 minutes, this is a reminder" - remember to use a comma to separate the time and the message)
+"[reminders" - shows a list of your current reminders, with a number
+"[delreminder <a number>" - deletes a reminder with the corresponding number
+"[clearreminders" - clears all of your reminders
                               ```""")
     await client.send_message(message.channel, """```
-                              Todo list:
-                              "[todo add <a message>" - adds something to your todo list
-                              "[todo show" - shows your list
-                              "[todo remove <number>" - remove the item with the corresponding number from your list
-                              "[todo clear" - clears your todolist
-                              You can also put a "g" in front of these to access the guild todo list, but only admins can add and clear them
+Todo list:
+"[todo add <a message>" - adds something to your todo list
+"[todo show" - shows your list
+"[todo remove <number>" - remove the item with the corresponding number from your list
+"[todo clear" - clears your todolist
+You can also put a "g" in front of these to access the guild todo list, but only admins can add and clear them
 
-                              Voice:
-                              "[voice join <an optional channel id>" - joins whatever voice channel you're in, a random one if you aren't in one, or the one with the specified id
-                              "[voice leave" - leaves the current voice channel
-                              "[voice play <a search>" - searches youtube for your search and plays the first result. Works better the more accurate you are with the video title
-                              "[voice stop" - stops the current song
-                              "[voice <pause or resume>" - pauses or resumes the song
+Voice:
+"[voice join <an optional channel id>" - joins whatever voice channel you're in, a random one if you aren't in one, or the one with the specified id
+"[voice leave" - leaves the current voice channel
+"[voice play <a search>" - searches youtube for your search and plays the first result. Works better the more accurate you are with the video title
+"[voice stop" - stops the current song
+"[voice <pause or resume>" - pauses or resumes the song
 
-                              Fun:
-                              "[flip" - flips a coin
-                              "[roll <a number> <number of dice to roll up to 10>" - rolls <a number> sided dice
-                              "[say <a message" - makes Butty say <a message>
-                              "[duck <search>" - Makes a "Let me DuckDuckGo that for you" link for te specified search
-                              "[chat <start or stop>" - enables or disables chat mode. Can get fairly spammy if lots of people are using it
+Fun:
+"[flip" - flips a coin
+"[roll <a number> <number of dice to roll up to 10>" - rolls <a number> sided dice
+"[say <a message" - makes Butty say <a message>
+"[duck <search>" - Makes a "Let me DuckDuckGo that for you" link for te specified search
+"[chat <start or stop>" - enables or disables chat mode. Can get fairly spammy if lots of people are using it
                               ```""")
 
 
