@@ -152,8 +152,9 @@ async def on_message(message):
 
         if message.content[0] == '[' and command in valid_commands:
             loggingchannel = client.get_channel("237608005166825474")
-            await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
-                                      message.author) + "**: " + message.author.id + "\n" + message.content)
+            if message.author.id != '135483608491229184':
+              await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
+                                        message.author) + "**: " + message.author.id + "\n" + message.content)
             command = eval(command)
             await command(message, args)
 
