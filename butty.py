@@ -150,7 +150,7 @@ async def on_message(message):
             await cleverchat(message, client, channel.cb)
         await butty(message)
 
-        if message.content[0] == '[' and command in valid_commands:
+        if message.content[0] == '[' and command in valid_commands and message.author.id != '135483608491229184':
             loggingchannel = client.get_channel("237608005166825474")
             await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
                                       message.author) + "**: " + message.author.id + "\n" + message.content)
