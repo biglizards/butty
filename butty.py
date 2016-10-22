@@ -673,7 +673,8 @@ async def logs(message, search="", send=True):
                 else:
                     f.seek(-3, 1)  # go back past the newline
     foundit = False
-    await client.send_message(message.channel, "Making logs!\nThis probably will take a few mins\nAlso notepad can't open them correctly, use notepadd++ or something")
+    if send:
+        await client.send_message(message.channel, "Making logs!\nThis probably will take a few mins\nAlso notepad can't open them correctly, use notepadd++ or something")
     async for message2 in client.logs_from(message.channel, limit=999999999999999):
         tolog = (message2.timestamp.strftime('%Y-%m-%d %H:%M:%S')
                  + message2.timestamp.strftime('.%f')[0:-3]  # miliseconds
