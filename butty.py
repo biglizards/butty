@@ -685,12 +685,12 @@ async def logs(message, search="", send=True):
             foundit = True
             break
         ind = " " * len(tolog)
-        tolog += str(message2.content).replace("\n", "\r\n" + ind)
+        tolog += str(message2.content).replace("\n", "\n" + ind)
         if message2.attachments:
             if message2.content:
                 tolog += " "
             for at in message2.attachments:
-                tolog += at['url'] + "\r\n"
+                tolog += at['url'] + "\n"
         else:
             tolog += "\n"
             logs_list.append(tolog)
