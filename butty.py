@@ -707,7 +707,7 @@ async def logs(message, search="", send=True):
             await client.send_file(message.channel,
                                    file,
                                    filename=(str(message.timestamp.strftime('%Y-%m-%d')) + ".log"),
-                                   content="here's your logs.\nstop making me do this\nit hurts so much inside")
+                                   content="here: these are your logs.\ndon't use notepad it's broken")
             file.close()
         except discord.HTTPException:
             with open(filename, 'rb') as f_in:
