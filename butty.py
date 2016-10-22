@@ -643,8 +643,8 @@ Fun:
 "[flip" - flips a coin
 "[roll <a number> <number of dice to roll up to 10>" - rolls <a number> sided dice
 "[say <a message" - makes Butty say <a message>
-"[duck <search>" - Makes a "Let me DuckDuckGo that for you" link for te specified search
-"[chat <start or stop>" - enables or disables chat mode. Can get fairly spammy if lots of people are using it
+"[duck <search>" - Makes a "Let me DuckDuckGo that for you" link for the specified search
+"[chat <start or stop>" - enables or disables chat mode. Can get fairly spammy if lots of people are using it. Remember to do [chat stop when you're done.
                               ```""")
 
 
