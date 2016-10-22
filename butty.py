@@ -713,8 +713,8 @@ async def logs(message, search="", send=True):
             with open(filename, 'rb') as f_in:
                 with gzip.open(filename + ".gz", 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
-                    file = open(filename+".gz", mode='rb')
-                    await client.send_file(message.channel,
+            file = open(filename+".gz", mode='rb')
+            await client.send_file(message.channel,
                                    file,
                                    filename=(str(message.timestamp.strftime('%Y-%m-%d')) + ".log.gz"),
                                    content="here's your logs.\nThey are compressed using gzip, make sure to decompress then first")
