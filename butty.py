@@ -9,6 +9,8 @@ import math
 import itertools
 import re
 import string
+import gzip
+import shutil
 
 import discord
 import parsedatetime.parsedatetime
@@ -699,12 +701,21 @@ async def logs(message, search="", send=True):
         file.write(message2)
     file.close()
     if send:
-        file = open(filename, mode='rb')
-        await client.send_file(message.channel,
-                               file,
-                               filename=(str(message.timestamp.strftime('%Y-%m-%d')) + ".log"),
-                               content="here's your logs.\nstop making me do this\nit hurts so much inside")
-        file.close()
+        try:
+            file = open(filename, mode='rb')
+            await client.send_file(message.channel,
+                                   file,
+                                   filename=(str(message.timestamp.strftime('%Y-%m-%d')) + ".log"),
+                                   content="here's your logs.\nstop making me do this\nit hurts so much inside")
+            file.close()
+        except discord.HTTPException:
+            with open(filename, 'rb') as f_in:
+                with gzip.open(filename + ".gz", 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+                    await client.send_file(message.channel,
+                                   file,
+                                   filename=(str(message.timestamp.strftime('%Y-%m-%d')) + ".log.gz"),
+                                   content="here's your logs.\nThey are compressed using gzip, make sure to decompress then first")
     else:
         results = []
         with open(filename, "r", encoding='utf-8') as file:
