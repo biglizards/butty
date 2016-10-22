@@ -372,7 +372,7 @@ async def voice(message, args):
                     await client.send_message(message.channel, "You're already playing something")
                     server.searching = False
                 else:
-                    if args[1].startswith == "https://www.youtube.com/watch?v":
+                    if ' '.join(args[1:]).startswith == "https://www.youtube.com/watch?v=":
                         result = args[1]
                     else:
                         res = str(' '.join(args[1:]))
