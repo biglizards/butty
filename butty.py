@@ -392,6 +392,19 @@ async def voice(message, args):
             await client.send_message(message.channel, "You aren't playing anything")
 
 
+async def invites(message, args):
+    newinvite = 0
+    invites = client.invites_from(message.server)
+    user = message.author.id
+    for invite in invites:
+        if invite.inviter.id == user:
+            newinvite = invite
+    if newinvite:
+        await client.send_message(message.channel, "You have invited " + str(newinvite.uses) + " people to the server")
+    else:
+        await client.send_message(message.channel, "You haven't made an invite link to this server")
+
+
 async def bug(message, args):
     if is_admin(message):
         bug_channel = client.get_channel("237608068630839296")
@@ -816,7 +829,7 @@ async def timecheck():
             database.commit()
     else:
         pass
-    await asyncio.sleep(59)
+    await asyncio.sleep(5)
     await timecheck()
 
 
