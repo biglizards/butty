@@ -127,8 +127,8 @@ async def on_message(message):
     #     await client.send_message(channel, message.author.name + ": " + message.content)
     # except discord.errors.InvalidArgument:
     #     print(message.channel.name, message.author.name, message.content)
-    # if message.author.bot:
-    #     return
+    if message.author.bot:
+        return
 
     if message.server.id not in servers:
         servers[message.server.id] = Server(message)
@@ -602,7 +602,7 @@ General:
 "[help" - shows the command list in discord
 "[stats" - shows Butty's Stats
 "[invite" - Gets the invite link
-"[toggle" - disable Butty in a channel
+"[togglebutty" - disable Butty in a channel
 "[bug <a message>" - reports a bug (only people with manage server permissions can do this"
 "[clean <a number" or "[purge <a number>" - deletes any messages starting with "[" or said by Butty in the last <a number> messages
 
