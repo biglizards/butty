@@ -38,7 +38,7 @@ logger.addHandler(handler)
 
 valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck', 'flip', 'roll', 'todo', 't', 'gt',
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
-                  'stats_secret', 'anagram', 'remindme', 'reminders', 'shadow']
+                  'stats_secret', 'anagram', 'remindme', 'reminders', 'shadow', 'invites']
 
 alnum = re.compile('(?=[\W_])([^-])')
 
