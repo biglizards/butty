@@ -19,6 +19,7 @@ from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
 from buttymodules import *
+from shadow import *
 
 # to do list:
 # oh god the text is highlighted what
@@ -40,7 +41,6 @@ valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck'
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
                   'stats_secret', 'anagram', 'remindme', 'reminders', 'shadow', 'invites']
 
-alnum = re.compile('(?=[\W_])([^-])')
 
 class Server:
     def __init__(self, message):
@@ -84,8 +84,6 @@ client = discord.Client()
 
 servers = {}
 
-shadowing = None
-
 if not os.path.exists('extras'):
     os.makedirs('extras')
 
@@ -119,18 +117,19 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.server == shadowing:
-        shadowing_host = client.get_server('237464178745409536')
-        channel = None
-        for x in shadowing_host.channels:
-            if alnum.sub('', x.name) == message.channel.name:
-                channel = x
-        try:
-            await client.send_message(channel, message.author.name + ": " + message.content)
-        except discord.errors.InvalidArgument:
-            print(message.channel.name, message.author.name, message.content)
-    if message.author.bot:
-        return
+
+    # if message.server == shadowing:
+    # shadowing_host = client.get_server('237464178745409536')
+    # channel = None
+    # for x in shadowing_host.channels:
+    #     if alnum.sub('', x.name) == message.channel.name:
+    #         channel = x
+    # try:
+    #     await client.send_message(channel, message.author.name + ": " + message.content)
+    # except discord.errors.InvalidArgument:
+    #     print(message.channel.name, message.author.name, message.content)
+    # if message.author.bot:
+    #     return
 
     if message.server.id not in servers:
         servers[message.server.id] = Server(message)
@@ -167,24 +166,6 @@ async def on_message(message):
         else:
             await client.send_message(message.channel, "Commands enabled")
 
-async def shadow(message, args):
-    # ok this is a really bad idea but hey why not
-    if not (message.author.id == "135496683009081345" or message.author.id == '135483608491229184'):
-        return
-    global shadowing
-    shadowing = client.get_server(args[0])
-    shadowing_host = client.get_server('237464178745409536')
-    old_channels = []
-    for channel in shadowing_host.channels:
-        old_channels.append(channel)
-    for channel in old_channels:
-        try:
-            await client.delete_channel(channel)
-        except:
-            pass
-    for x in shadowing.channels:
-        tmp_ch = await client.create_channel(shadowing_host, alnum.sub('', x.name), type=x.type)
-        await client.edit_channel(tmp_ch, topic=x.topic)
 
 async def reminders(message, args):
     reminder_list = cursor.execute("SELECT message FROM alert WHERE user=?", (message.author.id,)).fetchall()
@@ -752,6 +733,8 @@ async def find(message, args):
     await logs(message, search=' '.join(args), send=False)
 
 
+
+
 async def remindme(message, args):
     msg = message.content.split(",", 1)
     cal = parsedatetime.Calendar()
@@ -805,6 +788,25 @@ async def delreminder(message, args):
     except:
       user = client.get_user_info(message.author.id)
       await client.send_message(user, "Deleted **" + removed[0][0] + "** from your reminder list")
+
+# async def shadow(message, args):
+#     # ok this is a really bad idea but hey why not
+#     if not (message.author.id == "135496683009081345" or message.author.id == '135483608491229184'):
+#         return
+#     global shadowing
+#     shadowing = client.get_server(args[0])
+#     shadowing_host = client.get_server('237464178745409536')
+#     old_channels = []
+#     for channel in shadowing_host.channels:
+#         old_channels.append(channel)
+#     for channel in old_channels:
+#         try:
+#             await client.delete_channel(channel)
+#         except:
+#             pass
+#     for x in shadowing.channels:
+#         tmp_ch = await client.create_channel(shadowing_host, alnum.sub('', x.name), type=x.type)
+#         await client.edit_channel(tmp_ch, topic=x.topic)
 
 async def clearreminders(message, args):
     user = message.author.id
