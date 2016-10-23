@@ -19,7 +19,6 @@ from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
 from buttymodules import *
-from shadow import *
 
 # to do list:
 # oh god the text is highlighted what
