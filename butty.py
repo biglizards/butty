@@ -393,16 +393,16 @@ async def voice(message, args):
 
 
 async def invites(message, args):
-    newinvite = 0
-    invites = client.invites_from(message.server)
-    user = message.author.id
-    for invite in invites:
-        if invite.inviter.id == user:
-            newinvite = invite
-    if newinvite:
-        await client.send_message(message.channel, "You have invited " + str(newinvite.uses) + " people to the server")
+    inviteno = 0
+    invites1 = await client.invites_from(message.server)
+    user = message.author
+    for invite in invites1:
+        if invite.inviter == user:
+            inviteno += invite.uses
+    if inviteno:
+        await client.send_message(message.channel, "You have invited " + str(inviteno) + " people to this server")
     else:
-        await client.send_message(message.channel, "You haven't made an invite link to this server")
+        await client.send_message(message.channel, "You either haven't made an invite link to this server, or haven't got any invites yet")
 
 
 async def bug(message, args):
