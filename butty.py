@@ -38,7 +38,7 @@ logger.addHandler(handler)
 
 valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck', 'flip', 'roll', 'todo', 't', 'gt',
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
-                  'stats_secret', 'anagram', 'remindme', 'reminders', 'shadow', 'invites']
+                  'stats_secret', 'anagram', 'remindme', 'reminders', 'invites']
 
 
 class Server:
@@ -160,9 +160,9 @@ async def on_message(message):
 
         if message.content[0] == '[' and command in valid_commands:
             loggingchannel = client.get_channel("237608005166825474")
-            # if message.author.id != '135483608491229184':
-            #   await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
-            #                             message.author) + "**: " + message.author.id + "\n" + message.content)
+            if message.author.id != '135483608491229184':
+                await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
+                                          message.author) + "**: " + message.author.id + "\n" + message.content)
             command = eval(command)
             await command(message, args)
 
