@@ -697,9 +697,10 @@ You can also put a "g" in front of these to access the guild todo list, but only
 Voice:
 "[voice join <an optional channel id>" - joins whatever voice channel you're in, a random one if you aren't in one, or the one with the specified id
 "[voice leave" - leaves the current voice channel
-"[voice play <a search>" - searches youtube for your search and plays the first result. Works better the more accurate you are with the video title
-"[voice stop" - stops the current song
-"[voice <pause or resume>" - pauses or resumes the song
+"[voice play <a search>" - searches youtube for your search and plays the first result, or plays a youtube link you give it. If something is already playing, adds it to the queue"
+"[voice skip" - skips the current song
+"[voice queue" - shows the queue
+"[voice remove <number>" - removes the song from the queue that has the corresponding <number>
 
 Fun:
 "[flip" - flips a coin
