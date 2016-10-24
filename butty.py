@@ -400,6 +400,7 @@ async def timecheck():
                     server.player = await server.voice.create_ytdl_player(server.queue[0])
                     del server.queue[0]
                     server.player.start()
+                    await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
                 except IndexError:
                     pass
         except AttributeError:
@@ -408,6 +409,7 @@ async def timecheck():
                     server.player = await server.voice.create_ytdl_player(server.queue[0])
                     del server.queue[0]
                     server.player.start()
+                    await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
             except IndexError:
                 pass
     database.commit()
