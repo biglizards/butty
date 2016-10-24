@@ -185,7 +185,7 @@ async def chat(message, args):
     elif args[0] == "stop":
         channel.cb = False
 
-
+# a
 async def anagram(message, args):
     while True:
         word = random.choice(words)
