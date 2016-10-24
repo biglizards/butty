@@ -34,7 +34,7 @@ def should_remove(m):
 def youtube(search, result_number=1):
     results = []
     query_string = urllib.parse.urlencode({"search_query": search})
-    html_content = urllib.request.urlopen("htts://www.youtube.com/results?" + query_string)
+    html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
     search_results = re.findall(r'href=\"/watch\?v=(.{11})', html_content.read().decode())
     resultno = result_number * 2
     try:
