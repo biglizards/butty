@@ -76,6 +76,12 @@ class Channel:
         self.check_blacklist()
         return self.blacklisted
 
+
+class Song():
+    def __init__(self, result, channel):
+        self.url = result
+        self.channel = channel
+
 cb = Cleverbot()
 clever_chatting = {}
 
@@ -352,36 +358,20 @@ async def voice(message, args):
             else:
                 await client.send_message(message.channel, "You aren't connected to a voice channel\nhint do [v j")
 
-        # if server.searching:
-        #     await client.send_message(message.channel, "You're already playing something")
-        # else:
-        #     if server.voice:
-        #         server.searching = True
-        #         if server.player and server.player.is_playing():
-        #             await client.send_message(message.channel, "You're already playing something")
-        #             server.searching = False
-        #         else:
-        #             if ' '.join(args[1:]).startswith("https://www.youtube.com/watch?v="):
-        #                 result = args[1]
-        #             else:
-        #                 res = str(' '.join(args[1:]))
-        #                 result = youtube(res)
-        #             server.player = await server.voice.create_ytdl_player(result)
-        #             server.player.start()
-        #             server.searching = False
-        #             await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
-        #     else:
-        #         await client.send_message(message.channel, "You haven't joined a voice channel\nhint do [v j")
         if ' '.join(args[1:]).startswith("https://www.youtube.com/watch?v="):
             result = args[1]
         else:
             res = str(' '.join(args[1:]))
             result = youtube(res)
-        print(result)
+
         player = await server.voice.create_ytdl_player(result)
         player.channel = message.channel
+        player.time_created = time.time()
+
         if server.player and server.player.is_playing():
-            await client.send_message(server.player.channel, "`%s` added to queue" % player.title)
+            player_tmp = await server.voice.create_ytdl_player(result)
+            await client.send_message(message.channel, "`%s` added to queue" % player_tmp.title)
+
         server.queue.append(player)
 
     elif args[0] == "queue" or args[0] == "q":
@@ -398,7 +388,15 @@ async def voice(message, args):
             server.searching = False
         else:
             await client.send_message(message.channel, "You aren't playing anything")
-
+    elif args[0] == "clear" or args[0] == 'c':
+        server.queue = []
+        await client.send_message(message.channel, "Queue cleared")
+    elif args[0] == 'remove' or args[0] == 'r':
+        try:
+            index_to_remove = int(args[1]) - 1
+        except:
+            raise
+        del server.queue[index_to_remove]
 
 async def timecheck():
 
@@ -424,10 +422,19 @@ async def timecheck():
         for connection in client.voice_clients:
             server = servers[connection.server.id]
             if server.voice and server.queue and (not server.player or not server.player.is_playing()):
-                server.player = server.queue[0]
+
+                old_player = server.queue[0]
+                channel_to_send = old_player.channel
+
+                if old_player.time_created < time.time() - 20:
+                    server.player = old_player
+                else:
+                    server.player = await server.voice.create_ytdl_player(old_player.url)
                 del server.queue[0]
+
                 server.player.start()
-                await client.send_message(server.player.channel, "Now playing: `" + server.player.title + "`")
+
+                await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
 
         await asyncio.sleep(0.1)
 
