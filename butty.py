@@ -48,6 +48,7 @@ class Server:
         self.voice = False
         self.player = False
         self.searching = False
+        self.queue = []
 
 
 class Channel:
@@ -95,7 +96,8 @@ cursor = database.cursor()
 
 
 # print(cursor.execute("select * from sqlite_master where type='table'").fetchall())
-# cursor.execute('CREATE TABLE alert(user, channel, time, message, repeat)')
+# print(cursor.execute("select * from sqlite_master where table_name='queue'").fetchall())
+# cursor.execute('CREATE TABLE queue(user, channel, server, url, id)')
 # cursor.execute('ALTER TABLE alert ADD COLUMN id')
 # database.commit()
 
@@ -107,7 +109,7 @@ async def on_ready():
     print(client.user.id)
     print('------')
     global loggingchannel
-    await client.change_presence(game=discord.Game(name="[help for help [bug for bug reports | harru.club"))
+    await client.change_presence(game=discord.Game(name="I'm gonna down a lot so watch out"))
     await timecheck()
     # with open("butty.png", "rb") as file:
     # await client.edit_profile(avatar=file.read())
@@ -116,7 +118,6 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-
     # if message.server == shadowing:
     # shadowing_host = client.get_server('237464178745409536')
     # channel = None
@@ -152,9 +153,9 @@ async def on_message(message):
 
         if message.content[0] == '[' and command in valid_commands:
             loggingchannel = client.get_channel("237608005166825474")
-            if message.author.id != '135483608491229184':
-              await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
-                                        message.author) + "**: " + message.author.id + "\n" + message.content)
+            # if message.author.id != '135483608491229184':
+            #   await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
+            #                             message.author) + "**: " + message.author.id + "\n" + message.content)
             command = eval(command)
             await command(message, args)
 
@@ -343,33 +344,76 @@ async def voice(message, args):
         else:
             await client.send_message(message.channel, "You aren't connected to a voice channel\nhint do [v j")
     elif args[0] == "play" or args[0] == "p":
-        if server.searching:
-            await client.send_message(message.channel, "You're already playing something")
+        # if server.searching:
+        #     await client.send_message(message.channel, "You're already playing something")
+        # else:
+        #     if server.voice:
+        #         server.searching = True
+        #         if server.player and server.player.is_playing():
+        #             await client.send_message(message.channel, "You're already playing something")
+        #             server.searching = False
+        #         else:
+        #             if ' '.join(args[1:]).startswith("https://www.youtube.com/watch?v="):
+        #                 result = args[1]
+        #             else:
+        #                 res = str(' '.join(args[1:]))
+        #                 result = youtube(res)
+        #             server.player = await server.voice.create_ytdl_player(result)
+        #             server.player.start()
+        #             server.searching = False
+        #             await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
+        #     else:
+        #         await client.send_message(message.channel, "You haven't joined a voice channel\nhint do [v j")
+        if ' '.join(args[1:]).startswith("https://www.youtube.com/watch?v="):
+            result = args[1]
         else:
-            if server.voice:
-                server.searching = True
-                if server.player and server.player.is_playing():
-                    await client.send_message(message.channel, "You're already playing something")
-                    server.searching = False
-                else:
-                    if ' '.join(args[1:]).startswith("https://www.youtube.com/watch?v="):
-                        result = args[1]
-                    else:
-                        res = str(' '.join(args[1:]))
-                        result = youtube(res)
-                    server.player = await server.voice.create_ytdl_player(result)
-                    server.player.start()
-                    server.searching = False
-                    await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
-            else:
-                await client.send_message(message.channel, "You haven't joined a voice channel\nhint do [v j")
+            res = str(' '.join(args[1:]))
+            result = youtube(res)
+        server.queue.append(result)
 
-    elif args[0] == "stop" or args[0] == "s":
+    elif args[0] == "queue" or args[0] == "q":
+        for song in server.queue:
+            pass
+    elif args[0] == "skip" or args[0] == "s":
         if server.player:
             server.player.stop()
             server.searching = False
         else:
             await client.send_message(message.channel, "You aren't playing anything")
+
+
+async def timecheck():
+    now = str(datetime.now(timezone('UTC')))[:-16]
+    alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
+    if len(alerts) != 0:
+        users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
+        channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
+        for x in range(0, len(alerts)):
+            channel = client.get_channel(channels[x][0])
+            await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
+            cursor.execute("DELETE FROM alert WHERE time=?", (now,))
+    for connection in client.voice_clients:
+        server = servers[connection.server.id]
+        try:
+            if not server.player.is_playing() and server.voice:
+                try:
+                    server.player = await server.voice.create_ytdl_player(server.queue[0])
+                    del server.queue[0]
+                    server.player.start()
+                except IndexError:
+                    pass
+        except AttributeError:
+            try:
+                if not server.player and server.voice:
+                    server.player = await server.voice.create_ytdl_player(server.queue[0])
+                    del server.queue[0]
+                    server.player.start()
+            except IndexError:
+                pass
+    database.commit()
+    await asyncio.sleep(5)
+    await timecheck()
+
 
 
 async def invites(message, args):
@@ -555,8 +599,8 @@ async def purge(message, args):
         if not args:
             await client.send_message(message.channel, "You need to set a limit, I can't just remove everything")
             return
-        limit = int(args[0])
-        if limit > 200:
+        limit = int(args[0]) + 1
+        if limit > 201:
             await client.send_message(message.channel, "That's too many, calm down")
         else:
             await client.purge_from(message.channel, limit=limit, check=should_remove)
@@ -817,22 +861,6 @@ async def clearreminders(message, args):
       user = client.get_user_info(message.author.id)
       await client.send_message(user, "Your reminders have been cleared")
 
-async def timecheck():
-    now = str(datetime.now(timezone('UTC')))[:-16]
-    alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
-    users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
-    channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
-    if len(alerts) != 0:
-        for x in range(0, len(alerts)):
-            channel = client.get_channel(channels[x][0])
-            await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
-            cursor.execute("DELETE FROM alert WHERE time=?", (now,))
-            database.commit()
-    else:
-        pass
-    await asyncio.sleep(5)
-    await timecheck()
-
 
 async def butty(message):
     if message.author.id != "229223616217088001" and "butty" in message.content and message.server.id != '110373943822540800':
@@ -847,6 +875,8 @@ async def duck(message, args):
 async def restart(message, args):
     if message.author.id == "135496683009081345" or message.author.id == '135483608491229184':
         os.system("git pull && systemctl restart butty")
+
+
 
 try:
     with open("extras/token", 'r') as Token:
