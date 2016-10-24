@@ -116,7 +116,7 @@ async def on_ready():
     print(client.user.id)
     print('------')
     global loggingchannel
-    await client.change_presence(game=discord.Game(name="I'm gonna down a lot so watch out"))
+    await client.change_presence(game=discord.Game(name="UPDATE - do [help to see what"))
     await timecheck()
     # with open("butty.png", "rb") as file:
     # await client.edit_profile(avatar=file.read())
