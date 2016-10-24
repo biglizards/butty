@@ -66,7 +66,7 @@ class Channel:
         else:
             self.blacklisted = False
 
-    def toogle_blacklist(self):
+    def toggle_blacklist(self):
         if not self.blacklisted:
             cursor.execute("INSERT INTO blacklist VALUES (?)", (self.id,))
             database.commit()
@@ -76,13 +76,14 @@ class Channel:
         self.check_blacklist()
         return self.blacklisted
 
-
 cb = Cleverbot()
 clever_chatting = {}
 
 client = discord.Client()
 
 servers = {}
+
+last_reminder_check = 0
 
 if not os.path.exists('extras'):
     os.makedirs('extras')
@@ -160,7 +161,7 @@ async def on_message(message):
             await command(message, args)
 
     if msg[0] == "[togglebutty" and is_admin(message):
-        blacklisted = channel.toogle_blacklist()
+        blacklisted = channel.toggle_blacklist()
         if blacklisted:
             await client.send_message(message.channel, "Commands Disabled")
         else:
@@ -317,8 +318,8 @@ async def voice(message, args):
                     await client.send_message(message.channel, "That's not a valid voice channel id")
             else:
                 try:
-                    userchan = message.server.get_member(message.author.id).voice.voice_channel.id
-                    voice_channel = client.get_channel(userchan)
+                    user_chan = message.server.get_member(message.author.id).voice.voice_channel.id
+                    voice_channel = client.get_channel(user_chan)
                 except AttributeError:
                     for x in message.server.channels:
                         if str(x.type) == 'voice' and x.position == 0:
@@ -344,6 +345,13 @@ async def voice(message, args):
         else:
             await client.send_message(message.channel, "You aren't connected to a voice channel\nhint do [v j")
     elif args[0] == "play" or args[0] == "p":
+        if not voice:  # implicit join
+            if message.author.voice_channel:
+                voice = await client.join_voice_channel(message.author.voice_channel)
+                server.voice = voice
+            else:
+                await client.send_message(message.channel, "You aren't connected to a voice channel\nhint do [v j")
+
         # if server.searching:
         #     await client.send_message(message.channel, "You're already playing something")
         # else:
@@ -369,11 +377,21 @@ async def voice(message, args):
         else:
             res = str(' '.join(args[1:]))
             result = youtube(res)
-        server.queue.append(result)
+        print(result)
+        player = await server.voice.create_ytdl_player(result)
+        player.channel = message.channel
+        if server.player and server.player.is_playing():
+            await client.send_message(server.player.channel, "`%s` added to queue" % player.title)
+        server.queue.append(player)
 
     elif args[0] == "queue" or args[0] == "q":
+        reply = "Currently queued songs:\n"
+        counter = 0
         for song in server.queue:
-            pass
+            counter += 1
+            reply += "%i: `%s`\n" % (counter, song.title)
+
+        await client.send_message(message.channel, reply)
     elif args[0] == "skip" or args[0] == "s":
         if server.player:
             server.player.stop()
@@ -383,52 +401,49 @@ async def voice(message, args):
 
 
 async def timecheck():
-    now = str(datetime.now(timezone('UTC')))[:-16]
-    alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
-    if len(alerts) != 0:
-        users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
-        channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
-        for x in range(0, len(alerts)):
-            channel = client.get_channel(channels[x][0])
-            await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
-            cursor.execute("DELETE FROM alert WHERE time=?", (now,))
-    for connection in client.voice_clients:
-        server = servers[connection.server.id]
-        try:
-            if not server.player.is_playing() and server.voice:
-                try:
-                    server.player = await server.voice.create_ytdl_player(server.queue[0])
-                    del server.queue[0]
-                    server.player.start()
-                    await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
-                except IndexError:
-                    pass
-        except AttributeError:
-            try:
-                if not server.player and server.voice:
-                    server.player = await server.voice.create_ytdl_player(server.queue[0])
-                    del server.queue[0]
-                    server.player.start()
-                    await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
-            except IndexError:
-                pass
-    database.commit()
-    await asyncio.sleep(5)
-    await timecheck()
 
+    global last_reminder_check
+
+    while True:
+        start = time.time()
+
+        now = str(datetime.now(timezone('UTC')))[:-16]
+
+        if start - 55 > last_reminder_check:
+            alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
+            if len(alerts) != 0:
+                users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
+                channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
+                for x in range(0, len(alerts)):
+                    channel = client.get_channel(channels[x][0])
+                    await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
+                    cursor.execute("DELETE FROM alert WHERE time=?", (now,))
+            database.commit()
+            last_reminder_check = time.time()
+
+        for connection in client.voice_clients:
+            server = servers[connection.server.id]
+            if server.voice and server.queue and (not server.player or not server.player.is_playing()):
+                server.player = server.queue[0]
+                del server.queue[0]
+                server.player.start()
+                await client.send_message(server.player.channel, "Now playing: `" + server.player.title + "`")
+
+        await asyncio.sleep(0.1)
 
 
 async def invites(message, args):
-    inviteno = 0
-    invites1 = await client.invites_from(message.server)
+    invite_no = 0
+    invites_1 = await client.invites_from(message.server)
     user = message.author
-    for invite in invites1:
-        if invite.inviter == user:
-            inviteno += invite.uses
-    if inviteno:
-        await client.send_message(message.channel, "You have invited " + str(inviteno) + " people to this server")
+    for inv in invites_1:
+        if inv.inviter == user:
+            invite_no += inv.uses
+    if invite_no:
+        await client.send_message(message.channel, "You have invited " + str(invite_no) + " people to this server")
     else:
-        await client.send_message(message.channel, "You either haven't made an invite link to this server, or haven't got any invites yet")
+        await client.send_message(message.channel, ("You either haven't made an invite link to this server, "
+                                                    "or haven't got any invites yet"))
 
 
 async def bug(message, args):
