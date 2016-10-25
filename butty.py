@@ -437,7 +437,7 @@ async def timecheck():
 
                 await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
 
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(2)
 
 
 async def invites(message, args):
