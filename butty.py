@@ -427,7 +427,7 @@ async def timecheck():
                 old_player = server.queue[0]
                 channel_to_send = old_player.channel
 
-                if old_player.time_created < time.time() - 20:
+                if old_player.time_created < time.time() - 2:
                     server.player = old_player
                 else:
                     server.player = await server.voice.create_ytdl_player(old_player.url)
