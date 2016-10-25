@@ -403,22 +403,27 @@ async def timecheck():
 
     global last_reminder_check
 
+    while True:
+        start = time.time()
 
-    start = time.time()
+        now = str(datetime.now(timezone('UTC')))[:-16]
 
-    now = str(datetime.now(timezone('UTC')))[:-16]
+        if start - 55 > last_reminder_check:
+            alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
+            if len(alerts) != 0:
+                users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
+                channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
+                for x in range(0, len(alerts)):
+                    channel = client.get_channel(channels[x][0])
+                    await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
+                    cursor.execute("DELETE FROM alert WHERE time=?", (now,))
+            database.commit()
+            last_reminder_check = time.time()
 
-    if start - 55 > last_reminder_check:
-        alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
-        if len(alerts) != 0:
-            users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
-            channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
-            for x in range(0, len(alerts)):
-                channel = client.get_channel(channels[x][0])
-                await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
-                cursor.execute("DELETE FROM alert WHERE time=?", (now,))
-        database.commit()
-        last_reminder_check = time.time()
+
+        await asyncio.sleep(5)
+
+async def queueing():
 
     for connection in client.voice_clients:
         server = servers[connection.server.id]
@@ -436,9 +441,6 @@ async def timecheck():
             server.player.start()
 
             await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
-
-        await asyncio.sleep(5)
-        await timecheck()
 
 
 async def invites(message, args):
@@ -714,8 +716,8 @@ Fun:
 
 async def logs(message, search="", send=True):
     logs_list = []
-    if not os.path.exists('extras/' + message.server.name):
-        os.makedirs('extras/' + message.server.name)
+    if not os.path.exists('extras/' + message.server.id):
+        os.makedirs('extras/' + message.server.id)
     filename = ("extras/" + message.server.name
                 + "/"
                 + message.channel.name
