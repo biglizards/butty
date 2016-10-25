@@ -718,9 +718,9 @@ async def logs(message, search="", send=True):
     logs_list = []
     if not os.path.exists('extras/' + message.server.id):
         os.makedirs('extras/' + message.server.id)
-    filename = ("extras/" + message.server.name
+    filename = ("extras/" + message.server.id
                 + "/"
-                + message.channel.name
+                + message.channel.id
                 + ".new.log")
     if not os.path.isfile(filename):
         line = None
