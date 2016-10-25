@@ -49,6 +49,7 @@ class Server:
         self.player = False
         self.searching = False
         self.queue = []
+        self.fakequeue = []
 
 
 class Channel:
@@ -116,7 +117,7 @@ async def on_ready():
     print(client.user.id)
     print('------')
     global loggingchannel
-    await client.change_presence(game=discord.Game(name="I'm so sorry"))
+    await client.change_presence(game=discord.Game(name="Now has queueing | [help"))
     await timecheck()
     # with open("butty.png", "rb") as file:
     # await client.edit_profile(avatar=file.read())
@@ -160,10 +161,9 @@ async def on_message(message):
 
         if message.content[0] == '[' and command in valid_commands:
             loggingchannel = client.get_channel("237608005166825474")
-            if message.author.id != '135483608491229184':
-                await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id +
-                                          "\n**" + str(message.channel) + "**: " + message.channel.id +  "\n**" + str(
-                                          message.author) + "**: " + message.author.id + "\n" + message.content)
+            await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id +
+                                      "\n**" + str(message.channel) + "**: " + message.channel.id +  "\n**" + str(
+                                      message.author) + "**: " + message.author.id + "\n" + message.content)
             command = eval(command)
             await command(message, args)
 
@@ -368,12 +368,10 @@ async def voice(message, args):
         player = await server.voice.create_ytdl_player(result)
         player.channel = message.channel
         player.time_created = time.time()
-
         if server.player and server.player.is_playing():
-            player_tmp = await server.voice.create_ytdl_player(result)
-            await client.send_message(message.channel, "`%s` added to queue" % player_tmp.title)
-
+            await client.send_message(message.channel, "`%s` added to queue" % player.title)
         server.queue.append(player)
+
 
     elif args[0] == "queue" or args[0] == "q":
         reply = "Currently queued songs:\n"
@@ -398,6 +396,13 @@ async def voice(message, args):
         except:
             raise
         del server.queue[index_to_remove]
+    elif args[0] == "playing":
+        if server.player.is_playing():
+            await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
+        else:
+            await client.send_message(message.channel, "Last played: `" + server.player.title + "`")
+
+
 
 async def timecheck():
 
@@ -420,27 +425,25 @@ async def timecheck():
             database.commit()
             last_reminder_check = time.time()
 
+        for connection in client.voice_clients:
+            server = servers[connection.server.id]
+            if server.voice and server.queue and (not server.player or not server.player.is_playing()):
+
+                if len(server.fakequeue) > 0:
+                    del server.fakequeue[0]
+
+                server.player = server.queue[0]
+                channel_to_send = server.player.channel
+
+                del server.queue[0]
+
+                server.player.start()
+
+                await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
+            if not server.queue and (not server.player or not server.player.is_playing()):
+                server.fakequeue = []
 
         await asyncio.sleep(5)
-
-async def queueing():
-
-    for connection in client.voice_clients:
-        server = servers[connection.server.id]
-        if server.voice and server.queue and (not server.player or not server.player.is_playing()):
-
-            old_player = server.queue[0]
-            channel_to_send = old_player.channel
-
-            if old_player.time_created < time.time() - 2:
-                server.player = old_player
-            else:
-                server.player = await server.voice.create_ytdl_player(old_player.url)
-            del server.queue[0]
-
-            server.player.start()
-
-            await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
 
 
 async def invites(message, args):
