@@ -11,6 +11,7 @@ import re
 import string
 import gzip
 import shutil
+import sys
 
 import discord
 import parsedatetime.parsedatetime
@@ -31,10 +32,15 @@ real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 os.chdir(real_path)
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+if not os.path.exists('extras/metalogs'):
+    os.makedirs('extras/metalogs')
 handler = logging.FileHandler(filename='extras/metalogs/discord.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
+
+sys.stdout = open('extras/fucking_logs', 'a')
+
 
 valid_commands = ['help', 'bet', 'balance', 'invite', 'yt', 'voice', 'v', 'duck', 'flip', 'roll', 'todo', 't', 'gt',
                   'chat', 'foo', 'logs', 'find', 'restart', 'purge', 'clean', 'say', 'bug', 'stats',
@@ -326,7 +332,7 @@ async def voice(message, args):
                     if not voice_channel:
                         await client.send_message(message.channel, ("No voice channels could be found. "
                                                                     "Does butty have the required perms?"))
-            # discord.opus.load_opus("extras/opus.dll")
+            #discord.opus.load_opus("extras/opus.dll")
             discord.opus.load_opus("extras/opus.so")
             if not voice_channel:
                 return None
@@ -403,7 +409,6 @@ def set_done(player):
 async def timecheck():
     global last_reminder_check
     while True:
-
         try:
             start = time.time()
 
@@ -424,7 +429,7 @@ async def timecheck():
             for connection in client.voice_clients:
                 server = servers[connection.server.id]
                 if server.voice and server.queue and (not server.player or server.player.done):
- 
+
                     server.player = server.queue[0]
                     channel_to_send = server.player.channel
 
@@ -444,8 +449,8 @@ async def timecheck():
                     server.fakequeue = []
 
             await asyncio.sleep(2)
-        except:
-            print("something went wrong")
+        except Exception as e:
+            e.__traceback__.print_tb(file=open("extras/ohshitanerror", "w"))
         
 
 async def invites(message, args):
