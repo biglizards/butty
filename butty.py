@@ -401,50 +401,52 @@ def set_done(player):
     player.done = True
 
 async def timecheck():
-
     global last_reminder_check
-
     while True:
-        start = time.time()
 
-        now = str(datetime.now(timezone('UTC')))[:-16]
+        try:
+            start = time.time()
 
-        if start - 55 > last_reminder_check:
-            alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
-            if len(alerts) != 0:
-                users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
-                channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
-                for x in range(0, len(alerts)):
-                    channel = client.get_channel(channels[x][0])
-                    await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
-                    cursor.execute("DELETE FROM alert WHERE time=?", (now,))
-            database.commit()
-            last_reminder_check = time.time()
+            now = str(datetime.now(timezone('UTC')))[:-16]
 
-        for connection in client.voice_clients:
-            server = servers[connection.server.id]
-            if server.voice and server.queue and (not server.player or server.player.done):
+            if start - 55 > last_reminder_check:
+                alerts = cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
+                if len(alerts) != 0:
+                    users = cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
+                    channels = cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
+                    for x in range(0, len(alerts)):
+                        channel = client.get_channel(channels[x][0])
+                        await client.send_message(channel, "<@" + users[x][0] + "> " + alerts[x][0])
+                        cursor.execute("DELETE FROM alert WHERE time=?", (now,))
+                database.commit()
+                last_reminder_check = time.time()
 
-                server.player = server.queue[0]
-                channel_to_send = server.player.channel
+            for connection in client.voice_clients:
+                server = servers[connection.server.id]
+                if server.voice and server.queue and (not server.player or server.player.done):
+ 
+                    server.player = server.queue[0]
+                    channel_to_send = server.player.channel
 
                 #remake it because fuck it why not
-                player = await server.voice.create_ytdl_player(server.player.url)
-                player.done = False
-                player.after = lambda: set_done(player)
+                    player = await server.voice.create_ytdl_player(server.player.url)
+                    player.done = False
+                    player.after = lambda: set_done(player)
 
-                server.player = player
+                    server.player = player
 
-                del server.queue[0]
+                    del server.queue[0]
 
-                server.player.start()
+                    server.player.start()
 
-                await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
-            if not server.queue and (not server.player or not server.player.is_playing()):
-                server.fakequeue = []
+                    await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
+                if not server.queue and (not server.player or not server.player.is_playing()):
+                    server.fakequeue = []
 
-        await asyncio.sleep(2)
-
+            await asyncio.sleep(2)
+        except:
+            print("something went wrong")
+        
 
 async def invites(message, args):
     invite_no = 0
