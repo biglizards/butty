@@ -126,22 +126,13 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    # if message.server == shadowing:
-    # shadowing_host = client.get_server('237464178745409536')
-    # channel = None
-    # for x in shadowing_host.channels:
-    #     if alnum.sub('', x.name) == message.channel.name:
-    #         channel = x
-    # try:
-    #     await client.send_message(channel, message.author.name + ": " + message.content)
-    # except discord.errors.InvalidArgument:
-    #     print(message.channel.name, message.author.name, message.content)
     if message.author.bot:
         return
 
     if message.server.id not in servers:
         servers[message.server.id] = Server(message)
     server = servers[message.server.id]
+
     if message.channel.id not in server.channels:
         server.channels[message.channel.id] = Channel(message)
     channel = server.channels[message.channel.id]
@@ -153,17 +144,18 @@ async def on_message(message):
     if not channel.blacklisted:
         # react to non-command messages.
         if channel.cb:
-            loggingchannel = client.get_channel("237608005166825474")
-            await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
-                                      message.author) + "**: " + message.author.id + "\n" + message.content)
+            #loggingchannel = client.get_channel("237608005166825474")
+            #await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
+            #                          message.author) + "**: " + message.author.id + "\n" + message.content)
             await cleverchat(message, client, channel.cb)
+
         await butty(message)
 
         if message.content[0] == '[' and command in valid_commands:
-            loggingchannel = client.get_channel("237608005166825474")
-            await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id +
-                                      "\n**" + str(message.channel) + "**: " + message.channel.id +  "\n**" + str(
-                                      message.author) + "**: " + message.author.id + "\n" + message.content)
+            #loggingchannel = client.get_channel("237608005166825474")
+            #await client.send_message(loggingchannel, "**" + str(message.server) + "**: " + message.server.id +
+            #                          "\n**" + str(message.channel) + "**: " + message.channel.id +  "\n**" + str(
+            #                          message.author) + "**: " + message.author.id + "\n" + message.content)
             command = eval(command)
             await command(message, args)
 
@@ -366,8 +358,10 @@ async def voice(message, args):
             result = youtube(res)
 
         player = await server.voice.create_ytdl_player(result)
+
         player.channel = message.channel
         player.time_created = time.time()
+
         if server.player and server.player.is_playing():
             await client.send_message(message.channel, "`%s` added to queue" % player.title)
         server.queue.append(player)
@@ -403,6 +397,8 @@ async def voice(message, args):
             await client.send_message(message.channel, "Last played: `" + server.player.title + "`")
 
 
+def set_done(player):
+    player.done = True
 
 async def timecheck():
 
@@ -427,13 +423,17 @@ async def timecheck():
 
         for connection in client.voice_clients:
             server = servers[connection.server.id]
-            if server.voice and server.queue and (not server.player or not server.player.is_playing()):
-
-                if len(server.fakequeue) > 0:
-                    del server.fakequeue[0]
+            if server.voice and server.queue and (not server.player or server.player.done):
 
                 server.player = server.queue[0]
                 channel_to_send = server.player.channel
+
+                #remake it because fuck it why not
+                player = await server.voice.create_ytdl_player(server.player.url)
+                player.done = False
+                player.after = lambda: set_done(player)
+
+                server.player = player
 
                 del server.queue[0]
 
@@ -443,7 +443,7 @@ async def timecheck():
             if not server.queue and (not server.player or not server.player.is_playing()):
                 server.fakequeue = []
 
-        await asyncio.sleep(5)
+        await asyncio.sleep(2)
 
 
 async def invites(message, args):
