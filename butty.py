@@ -450,8 +450,7 @@ async def timecheck():
 
             await asyncio.sleep(2)
         except Exception as e:
-            e.__traceback__.print_tb(file=open("extras/ohshitanerror", "w"))
-        
+            print(e)        
 
 async def invites(message, args):
     invite_no = 0
