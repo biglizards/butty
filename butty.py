@@ -401,6 +401,9 @@ async def voice(message, args):
             await client.send_message(message.channel, "Now playing: `" + server.player.title + "`")
         else:
             await client.send_message(message.channel, "Last played: `" + server.player.title + "`")
+    elif args[0] == 'v' or args[0] == 'volume':
+        if server.player and 0 < int(args[1]) < 201:
+            server.player.volume = int(args[1]) / 100
 
 
 def set_done(player):
