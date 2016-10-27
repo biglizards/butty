@@ -32,7 +32,7 @@ os.chdir(real_path)
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='extras/metalogs/discord.log', encoding='utf-8', mode='a')
+handler = logging.FileHandler(filename='extras/metalogs/discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -429,19 +429,18 @@ async def timecheck():
             server = servers[connection.server.id]
             if server.voice and server.queue and (not server.player or not server.player.is_playing()):
 
-                if len(server.fakequeue) > 0:
-                    del server.fakequeue[0]
 
-                server.player = server.queue[0]
-                channel_to_send = server.player.channel
 
+                url = server.queue[0].url
+                channel_to_send = server.queue[0].channel
+
+
+                server.player = await server.voice.create_ytdl_player(url)
                 del server.queue[0]
 
                 server.player.start()
 
                 await client.send_message(channel_to_send, "Now playing: `" + server.player.title + "`")
-            if not server.queue and (not server.player or not server.player.is_playing()):
-                server.fakequeue = []
 
         await asyncio.sleep(5)
 
