@@ -119,4 +119,4 @@ bot.add_cog(Voice(bot))
 async def on_ready():
     print('Logged in as:\n{0} (ID: {0.id})'.format(bot.user))
 
-bot.run('MjMxNTM1MzE5OTUzMDQ3NTUy.Cu-IRw.8UVTAStxhUhYQoMqymwnNlvfpao')
+bot.run('token')
