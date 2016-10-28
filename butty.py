@@ -22,8 +22,7 @@ real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 os.chdir(real_path)
 
 database = sqlite3.connect("cogs/buttybot.db")
-cursor = database.cursor()
-c = cursor
+c = database.cursor()
 
 c.execute('''CREATE TABLE IF NOT EXISTS prefixes
              (id text, prefix text)''')
