@@ -39,6 +39,7 @@ class VoiceClient:
         }
         try:
             song = self.queue[0]
+            del self.queue[0]
         except IndexError:
             print("error: Nothing next in queue")
             return None
@@ -46,7 +47,7 @@ class VoiceClient:
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.current_song = Song(self.player, song.message)
 
-        await bot.send_message(self.current_song.channel, "very good, sir")
+        await self.bot.send_message(self.current_song.channel, "now playing `" + self.current_song.title + '`')
 
         self.player.start()
 
@@ -58,15 +59,11 @@ class VoiceClient:
             'skip_download': True,
         }
 
-        self.queue.append(
-            Song(
-                await self.client.create_ytdl_player(name, ytdl_options=options),
-                message
-            )
-        )
+        song = Song(await self.client.create_ytdl_player(name, ytdl_options=options), message)
+        self.queue.append(song)
 
-    async def play(self):
-        pass
+        if self.player and self.player.is_playing():
+            await self.bot.send_message(song.channel, "`{}` added to queue".format(song.title))
 
     async def main_loop(self):
         while True:
@@ -76,6 +73,7 @@ class VoiceClient:
                     await self.play_next_in_queue()
             except Exception as e:
                 print("error: ", e)
+
 
 class Voice:
     def __init__(self, bot_):
@@ -89,9 +87,9 @@ class Voice:
             context.invoked_with = "help"
             await commands.bot._default_help_command(context, "voice")
     '''
-    @commands.command(name="play", pass_context=True)
+    @commands.command(name="play", aliases=['add', 'p'], pass_context=True)
     async def voice_play(self, context, *song: str):
-        """Search for and play something.
+        """Search for and play something
 
         Examples:
           play relaxing flute sounds
@@ -99,24 +97,53 @@ class Voice:
         """
         message = context.message
 
-        voice = self.voice_clients.get(context.message.server.id)
+        voice = self.voice_clients.get(message.server.id)
         if not voice:
             if message.author.voice_channel:
-                voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), bot)
+                voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
+                self.voice_clients[message.server.id] = voice
             else:
                 await self.bot.say("You aren't connected to a voice channel\nhint do [v j")
 
         await voice.add_to_queue(' '.join(song), message)
 
-        if voice.player and voice.player.is_playing():
-            await bot.say("`{}` added to queue".format(voice.title))
+    @commands.command(name="stop", aliases=['skip', 's'], pass_context=True)
+    async def voice_stop(self, context):
+        """Skips the currently playing song"""
+        voice = self.voice_clients.get(context.message.server.id)
+        voice.player.stop()
 
-bot = commands.Bot(command_prefix=commands.when_mentioned_or('?'), description='A playlist example for discord.py')
-bot.add_cog(Voice(bot))
+    @commands.command(name="queue", aliases=['q'], pass_context=True)
+    async def voice_queue(self, context):
+        """Show the songs currently in the queue
+
+        Because discord only allows 2000 characters per message,
+        sometimes not all songs in the queue can be shown"""
+        message = context.message
+
+        voice = self.voice_clients.get(message.server.id)
+        if not voice:
+            self.bot.say("You haven't joined a voice channel; there is not queue")
+            return None
+
+        reply = "Current queue:"
+        counter = 1
+        for song in voice.queue:
+            reply += "\n{}: `{}`".format(counter, song.title)
+        await self.bot.say(reply)
+
+    # Todo:
+    # Fix any bugs that pop up
+    # Skip/stop
+    # Pause/resume
+    # Show queue
+
+# bot = commands.Bot(command_prefix=commands.when_mentioned_or('?'), description='A playlist example for discord.py')
+# bot.add_cog(Voice(bot))
 
 
-@bot.event
-async def on_ready():
-    print('Logged in as:\n{0} (ID: {0.id})'.format(bot.user))
+# @bot.event
+# async def on_ready():
+#     print('Logged in as:\n{0} (ID: {0.id})'.format(bot.user))
 
-bot.run('token')
+# bot.run('token')
