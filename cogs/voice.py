@@ -132,18 +132,10 @@ class Voice:
             reply += "\n{}: `{}`".format(counter, song.title)
         await self.bot.say(reply)
 
+
+def setup(bot):
+    bot.add_cog(Voice(bot))
+
     # Todo:
     # Fix any bugs that pop up
-    # Skip/stop
     # Pause/resume
-    # Show queue
-
-# bot = commands.Bot(command_prefix=commands.when_mentioned_or('?'), description='A playlist example for discord.py')
-# bot.add_cog(Voice(bot))
-
-
-# @bot.event
-# async def on_ready():
-#     print('Logged in as:\n{0} (ID: {0.id})'.format(bot.user))
-
-# bot.run('token')
