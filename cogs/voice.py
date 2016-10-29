@@ -130,9 +130,10 @@ class Voice:
         counter = 1
         for song in voice.queue:
             reply += "\n{}: `{}`".format(counter, song.title)
+            counter += 1
         await self.bot.say(reply)
 
-    @commands.command(name="remove", aliases=['r'], pass_context=True)
+    @commands.command(name="remove", aliases=['qr'], pass_context=True)
     async def voice_remove(self, context, number):
         voice = self.voice_clients.get(context.message.server.id)
         song = voice.queue[int(number)-1]
