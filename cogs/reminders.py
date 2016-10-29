@@ -15,14 +15,21 @@ class Reminders:
         self.bot = bot
         self.database = sqlite3.connect("cogs/buttybot.db")
         self.cursor = self.database.cursor()
-        self.prefix = "fuck"
 
-    @commands.group()
+    @commands.group(aliases=['r'], brief='do "help r" for more detail')
     async def reminder(self):
+        """Because you need to not forget stuff
+
+        EG:
+        ?reminder add 2 hours, remove the cake from hell
+        ?r show
+        """
         pass
 
-    @reminder.command(pass_context="True")
+    @reminder.command(aliases=['a'], pass_context="True")
     async def add(self, context):
+        # oh god what is this shit
+        # harru why you do this
         message = " ".join(context.message.content.split(" ")[2:])
         msg = message.split(",", 1)
         cal = parsedatetime.Calendar()
@@ -53,8 +60,7 @@ class Reminders:
         self.database.commit()
         await self.bot.say("Reminder set for " +  time + " UTC")
 
-
-    @reminder.command(pass_context=True)
+    @reminder.command(aliases=['d', 'r'],pass_context=True)
     async def delete(self, context):
         args = context.message.content.split(" ")
         ids = int(args[2])
@@ -71,15 +77,14 @@ class Reminders:
         self.database.commit()
         await self.bot.say("Deleted **" + removed[0][0] + "** from your reminder list")
 
-
-    @reminder.command(pass_context=True)
+    @reminder.command(aliases=['c'], pass_context=True)
     async def clear(self, context):
         user = context.message.author.id
         self.cursor.execute("DELETE FROM alert WHERE user=?", (user,))
         self.database.commit()
         await self.bot.say("Your reminders have been cleared")
 
-    @reminder.command(pass_context=True)
+    @reminder.command(aliases=['s', 'l'], pass_context=True)
     async def show(self, context):
         reminder_list = self.cursor.execute("SELECT message FROM alert WHERE user=?", (context.message.author.id,)).fetchall()
         x = 0
