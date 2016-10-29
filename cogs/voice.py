@@ -109,7 +109,7 @@ class Voice:
         """Skips the currently playing song"""
         voice = self.voice_clients.get(context.message.server.id)
         if voice.current_song.user != context.message.author and not misc.is_admin(context):
-            self.bot.say("You can't stop the music~~\n(you're not the person who put this on")
+            await self.bot.say("You can't stop the music~~\n(you're not the person who put this on")
             return None
         voice.player.stop()
 
@@ -131,6 +131,16 @@ class Voice:
         for song in voice.queue:
             reply += "\n{}: `{}`".format(counter, song.title)
         await self.bot.say(reply)
+
+    @commands.command(name="remove", aliases=['r'], pass_context=True)
+    async def voice_remove(self, context, number):
+        voice = self.voice_clients.get(context.message.server.id)
+        song = voice.queue[int(number)-1]
+        if song.user != context.message.author and not misc.is_admin(context):
+            await self.bot.say("You can't stop the music~~\n(you're not the person who put this on")
+            return None
+        await self.bot.say("Removed `{}` from the queue".format(song.title))
+        del voice.queue[int(number)-1]
 
 
 def setup(bot):
