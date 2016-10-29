@@ -21,7 +21,7 @@ class Prefix:
             prefix = self.prefixes.get(message.server.id)
 
         if not prefix:
-            return '?'
+            return '['
         if prefix[0] != self.prefixes.get(message.server.id):
             self.prefixes[message.server.id] = prefix[0]
 
