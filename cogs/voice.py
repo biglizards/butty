@@ -153,6 +153,12 @@ class Voice:
         await self.bot.say("Removed `{}` from the queue".format(song.title))
         del voice.queue[int(number)-1]
 
+    @commands.command(name="playing", aliases=['cp'])
+    async def voice_remove(self, context):
+        voice = self.voice_clients.get(context.message.server.id)
+        song = voice.current_song
+        await self.bot.say("now playing `{}` ({})".format(song.title, song.duration))
+
 
 def setup(bot):
     bot.add_cog(Voice(bot))
