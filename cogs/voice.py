@@ -1,11 +1,8 @@
 import asyncio
 
-import discord
 from discord.ext import commands
 
-if discord:
-    asyncio.sleep(0)
-
+import cogs.misc as misc
 
 class Song:
     def __init__(self, player, message):
@@ -111,6 +108,9 @@ class Voice:
     async def voice_stop(self, context):
         """Skips the currently playing song"""
         voice = self.voice_clients.get(context.message.server.id)
+        if voice.current_song.user != context.message.author and not misc.is_admin(context):
+            self.bot.say("You can't stop the music~~\n(you're not the person who put this on")
+            return None
         voice.player.stop()
 
     @commands.command(name="queue", aliases=['q'], pass_context=True)
