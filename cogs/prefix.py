@@ -27,7 +27,7 @@ class Prefix:
 
         return prefix[0]
 
-database = sqlite3.connect("cogs/buttybot.db")
+database = sqlite3.connect("buttybot.db")
 c = database.cursor()
 
 c.execute('''CREATE TABLE IF NOT EXISTS prefixes
