@@ -1,4 +1,8 @@
 import sqlite3
+import os
+
+real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
+os.chdir(real_path)
 
 
 class Prefix:
