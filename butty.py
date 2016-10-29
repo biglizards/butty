@@ -5,18 +5,9 @@ import os
 
 import discord
 from discord.ext import commands
+import cogs.prefix
 
-
-def get_prefix(bot_, message):
-    if message.server is not None and '{0.me.mention} '.format(message.server) in message.content:
-        return '{0.me.mention} '.format(message.server)
-    elif '{0.user.mention} '.format(bot_) in message.content:
-        return '{0.user.mention} '.format(bot_)
-
-    prefix = c.execute("SELECT prefix FROM prefixes WHERE id=?", (message.server.id,)).fetchone()
-    if not prefix:
-        return '?'
-    return prefix[0]
+prefix = cogs.prefix.Prefix()
 
 real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 os.chdir(real_path)
@@ -28,10 +19,10 @@ c.execute('''CREATE TABLE IF NOT EXISTS prefixes
              (id text, prefix text)''')
 
 description = '''Butty. All you need, and more, less some things you need'''
-bot = commands.Bot(command_prefix=get_prefix, description=description)
+bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 
 # add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
-startup_extensions = ["cogs.reminders", "cogs.voice"]
+startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc"]
 
 
 logger = logging.getLogger('discord')
