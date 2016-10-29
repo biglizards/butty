@@ -12,9 +12,18 @@ class Song:
         self.user = message.author
         self.channel = message.channel
 
-        self.duration = self.player.duration
         self.title = self.player.title
         self.url = self.player.url
+
+        m, s = divmod(self.player.duration, 60)
+        h, m = divmod(m, 60)
+
+        if h:
+            self.duration = "{}:{}:{}".format(h,m,s)
+        elif m:
+            self.duration = "{}:{}".format(m, s)
+        else:
+            self.duration = "{}".format(s)
 
 
 class VoiceClient:
@@ -44,7 +53,8 @@ class VoiceClient:
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.current_song = Song(self.player, song.message)
 
-        await self.bot.send_message(self.current_song.channel, "now playing `" + self.current_song.title + '`')
+        await self.bot.send_message(self.current_song.channel, "now playing `{}` ({})".format(
+            self.current_song.title, self.current_song.duration))
 
         self.player.start()
 
@@ -60,7 +70,7 @@ class VoiceClient:
         self.queue.append(song)
 
         if self.player and self.player.is_playing():
-            await self.bot.send_message(song.channel, "`{}` added to queue".format(song.title))
+            await self.bot.send_message(song.channel, "`{}` added to queue ({})".format(song.title, song.duration))
 
     async def main_loop(self):
         while True:
@@ -129,7 +139,7 @@ class Voice:
         reply = "Current queue:"
         counter = 1
         for song in voice.queue:
-            reply += "\n{}: `{}`".format(counter, song.title)
+            reply += "\n{}: `{}` ({})".format(counter, song.title, song.duration)
             counter += 1
         await self.bot.say(reply)
 
