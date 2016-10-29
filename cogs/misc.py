@@ -1,5 +1,6 @@
 import asyncio
 import random
+import urllib
 
 from discord.ext import commands
 
@@ -71,6 +72,12 @@ class Misc:
     async def misc_roll(self, number_of_sides, ):
         """roll x dice with y sides
         Also accepts xdy format"""
+        pass
+
+    @commands.command(name="duck")
+    async def misc_duck(self, *message):
+        query = urllib.parse.quote(' '.join(message))
+        await self.bot.say("http://lmddgtfy.net/?q=" + query)
 
 
 def setup(bot):
