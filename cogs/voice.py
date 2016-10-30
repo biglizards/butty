@@ -63,10 +63,11 @@ class VoiceClient:
             'default_search': 'auto',
             'quiet': True,
             'ignoreerrors': True,
-            'skip_download': True,
+            #'skip_download': True,
         }
 
-        song = Song(await self.client.create_ytdl_player(name, ytdl_options=options), message)
+        song = Song(await self.client.create_ytdl_player(name, ytdl_options=options, before_options='-help'), message)
+        song.player = None
         self.queue.append(song)
 
         if self.player and self.player.is_playing():
