@@ -66,7 +66,7 @@ class VoiceClient:
             #'skip_download': True,
         }
 
-        song = Song(await self.client.create_ytdl_player(name, ytdl_options=options), message)
+        song = Song(await self.client.create_ytdl_player(name, ytdl_options=options, before_options='-help'), message)
         song.player = None
         self.queue.append(song)
 
