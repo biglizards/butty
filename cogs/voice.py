@@ -161,8 +161,15 @@ class Voice:
 
     @commands.command(name="leave", aliases=['l'], pass_context=True)
     async def voice_leave(self, context):
-        await self.voice_clients.get(context.message.server.id).client.disconnect()
-        del self.voice_clients[context.message.server.id]
+        voice = self.voice_clients[context.message.server.id]
+        if not misc.is_admin(context):
+            for song in voice.queue:
+                if song.user != context.message.author:
+                    await self.bot.say("You can't stop the music~~\n(someone else still has something queued)")
+                    return None
+        await voice.client.disconnect()
+        voice.queue = []
+        voice.player.stop()
 
 
 def setup(bot):
