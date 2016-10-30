@@ -106,7 +106,7 @@ class Voice:
         message = context.message
 
         voice = self.voice_clients.get(message.server.id)
-        if not voice:
+        if not voice or not voice.client:
             if message.author.voice_channel:
                 voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
                 self.voice_clients[message.server.id] = voice
