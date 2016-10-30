@@ -159,6 +159,11 @@ class Voice:
         song = voice.current_song
         await self.bot.say("now playing `{}` ({})".format(song.title, song.duration))
 
+    @commands.command(name="leave", aliases=['l'], pass_context=True)
+    async def voice_leave(self, context):
+        await self.voice_clients.get(context.message.server.id).disconnect()
+        del self.voice_clients[context.message.server.id]
+
 
 def setup(bot):
     bot.add_cog(Voice(bot))
