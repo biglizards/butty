@@ -110,7 +110,7 @@ class Voice:
                 voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
                 self.voice_clients[message.server.id] = voice
             else:
-                await self.bot.say("You aren't connected to a voice channel\nhint do [v j")
+                await self.bot.say("You aren't connected to a voice channel")
 
         await voice.add_to_queue(' '.join(song), message)
 
