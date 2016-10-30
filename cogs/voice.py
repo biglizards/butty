@@ -154,7 +154,7 @@ class Voice:
         del voice.queue[int(number)-1]
 
     @commands.command(name="playing", aliases=['cp'], pass_context=True)
-    async def voice_remove(self, context):
+    async def voice_playing(self, context):
         voice = self.voice_clients.get(context.message.server.id)
         song = voice.current_song
         await self.bot.say("now playing `{}` ({})".format(song.title, song.duration))
