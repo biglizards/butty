@@ -110,7 +110,7 @@ class Voice:
                 voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
                 self.voice_clients[message.server.id] = voice
             else:
-                await self.bot.say("You aren't connected to a voice channel")
+                await self.bot.say("You aren't connected to a voice channel\nhint do [v j")
 
         await voice.add_to_queue(' '.join(song), message)
 
@@ -158,6 +158,11 @@ class Voice:
         voice = self.voice_clients.get(context.message.server.id)
         song = voice.current_song
         await self.bot.say("now playing `{}` ({})".format(song.title, song.duration))
+
+    @commands.command(name="leave", aliases=['l'], pass_context=True)
+    async def voice_leave(self, context):
+        await self.voice_clients.get(context.message.server.id).disconnect()
+        del self.voice_clients[context.message.server.id]
 
 
 def setup(bot):
