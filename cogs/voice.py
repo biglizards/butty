@@ -161,7 +161,7 @@ class Voice:
 
     @commands.command(name="leave", aliases=['l'], pass_context=True)
     async def voice_leave(self, context):
-        await self.voice_clients.get(context.message.server.id).disconnect()
+        await self.voice_clients.get(context.message.server.id).client.disconnect()
         del self.voice_clients[context.message.server.id]
 
 
