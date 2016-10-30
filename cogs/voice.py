@@ -67,7 +67,7 @@ class VoiceClient:
         }
 
         song = Song(await self.client.create_ytdl_player(name, ytdl_options=options), message)
-        song.player.stop()
+        song.player = None
         self.queue.append(song)
 
         if self.player and self.player.is_playing():
