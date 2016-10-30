@@ -63,7 +63,7 @@ class VoiceClient:
             'default_search': 'auto',
             'quiet': True,
             'ignoreerrors': True,
-            'skip_download': True,
+            #'skip_download': True,
         }
 
         song = Song(await self.client.create_ytdl_player(name, ytdl_options=options), message)
