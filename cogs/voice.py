@@ -169,6 +169,7 @@ class Voice:
                     await self.bot.say("You can't stop the music~~\n(someone else still has something queued)")
                     return None
         await voice.client.disconnect()
+        voice.client = None
         voice.queue = []
         voice.player.stop()
 
