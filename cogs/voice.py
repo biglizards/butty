@@ -5,7 +5,7 @@ from discord.ext import commands
 import cogs.misc as misc
 
 class Song:
-    def __init__(self, player, message):
+    def __init__(self, player, message, loop=False):
         self.player = player
 
         self.message = message
@@ -14,6 +14,8 @@ class Song:
 
         self.title = self.player.title
         self.url = self.player.url
+        
+        self.loop = loop
 
         m, s = divmod(self.player.duration, 60)
         h, m = divmod(m, 60)
@@ -45,7 +47,8 @@ class VoiceClient:
         }
         try:
             song = self.queue[0]
-            del self.queue[0]
+            if not song.loop:
+                del self.queue[0]
         except IndexError:
             print("error: Nothing next in queue")
             return None
@@ -58,7 +61,7 @@ class VoiceClient:
 
         self.player.start()
 
-    async def add_to_queue(self, name, message):
+    async def add_to_queue(self, name, message, loop=False):
         options = {
             'default_search': 'auto',
             'quiet': True,
@@ -66,7 +69,7 @@ class VoiceClient:
             #'skip_download': True,
         }
 
-        song = Song(await self.client.create_ytdl_player(name, ytdl_options=options, before_options='-help'), message)
+        song = Song(await self.client.create_ytdl_player(name, ytdl_options=options, before_options='-help'), message, loop)
         song.player = None
         self.queue.append(song)
 
@@ -172,7 +175,12 @@ class Voice:
         voice.client = None
         voice.queue = []
         voice.player.stop()
-
+        
+    @commands.command(name="loop", aliases=['loopadoop'], pass_context=True)
+    async def voice_leave(self, context):
+        voice = self.voice_clients.get(context.message.server.id)
+        self.add_to_queue(voice.current_song.url, context.message, True)
+        
 
 def setup(bot):
     bot.add_cog(Voice(bot))
