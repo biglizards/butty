@@ -179,7 +179,7 @@ class Voice:
         voice.player.stop()
         
     @commands.command(name="loop", aliases=['loopadoop'], pass_context=True)
-    async def voice_leave(self, context):
+    async def voice_loop(self, context):
         voice = self.voice_clients.get(context.message.server.id)
         await voice.add_to_queue(voice.current_song.url, context.message, True)
         
