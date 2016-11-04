@@ -2,6 +2,8 @@
 import sqlite3
 import logging
 import os
+import time
+import datetime
 
 import discord
 from discord.ext import commands
@@ -22,7 +24,7 @@ description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 
 # add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
-startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc"]
+startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.logs"]
 
 
 logger = logging.getLogger('discord')
@@ -47,6 +49,7 @@ async def on_ready():
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))
+
 
 try:
     with open("extras/token", 'r') as Token:
