@@ -109,6 +109,8 @@ class Voice:
         message = context.message
 
         voice = self.voice_clients.get(message.server.id)
+        if voice:
+            print(voice.client.socket)
         if not voice or not voice.client:
             if message.author.voice_channel:
                 voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
@@ -179,7 +181,7 @@ class Voice:
     @commands.command(name="loop", aliases=['loopadoop'], pass_context=True)
     async def voice_leave(self, context):
         voice = self.voice_clients.get(context.message.server.id)
-        self.add_to_queue(voice.current_song.url, context.message, True)
+        await voice.add_to_queue(voice.current_song.url, context.message, True)
         
 
 def setup(bot):
