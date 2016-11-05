@@ -22,7 +22,7 @@ description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 
 # add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
-startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc"]
+startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.logs"]
 
 
 logger = logging.getLogger('discord')
