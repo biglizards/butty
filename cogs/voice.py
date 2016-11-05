@@ -177,6 +177,7 @@ class Voice:
         voice.client = None
         voice.queue = []
         voice.player.stop()
+        del self.voice_clients[context.message.server.id]
         
     @commands.command(name="loop", aliases=['loopadoop'], pass_context=True)
     async def voice_loop(self, context):
