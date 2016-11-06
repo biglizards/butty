@@ -1,7 +1,9 @@
 import asyncio
 import random
 import urllib
+import os
 
+import discord
 from discord.ext import commands
 
 import cogs.prefix as prefix
@@ -97,6 +99,18 @@ class Misc:
         lmddgtfy == Let Me Duck Duck Go That For You"""
         query = urllib.parse.quote(' '.join(message))
         await self.bot.say("http://lmddgtfy.net/?q=" + query)
+
+
+    @commands.command(name="restart", aliases=["getout"], pass_context=True, hidden=True)
+    async def misc_restart(self, ctx):
+        if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
+            os.system("git pull && systemctl restart butty")
+
+    @commands.command(name="presence", aliases=["statuschange"], pass_context=True)
+    async def misc_statuschange(self, ctx, *newgame : str):
+        if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
+            await self.bot.change_presence(game=discord.Game(name=newgame))
+            print("yay")
 
 
 def setup(bot):
