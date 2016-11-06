@@ -2,8 +2,6 @@
 import sqlite3
 import logging
 import os
-import time
-import datetime
 
 import discord
 from discord.ext import commands
@@ -42,7 +40,7 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
-    await bot.change_presence(game=discord.Game(name='who ping'))
+    # await bot.change_presence(game=discord.Game(name='i hate you'))
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)
@@ -50,6 +48,14 @@ async def on_ready():
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))
 
+@bot.event
+async def on_message(message):
+    loggingchannel = bot.get_channel("206692095208062976")
+    if message.author.id != '135483608491229184' and message.content[0] == "[":
+        await bot.send_message(loggingchannel,
+                                  "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
+                                      message.author) + "**: " + message.author.id + "\n" + message.content)
+    await bot.process_commands(message)
 
 try:
     with open("extras/token", 'r') as Token:
