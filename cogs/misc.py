@@ -14,9 +14,12 @@ def is_admin(context):
 
 
 class Misc:
+
+
     def __init__(self, bot_):
         self.bot = bot_
         self.prefix = prefix.Prefix()
+
 
     def should_remove(self, m):
         prefix_ = self.prefix.get_prefix(self.bot, m, False)
@@ -24,30 +27,32 @@ class Misc:
             return True
         return False
 
+
     @commands.command(name="stats", hidden=True)
     async def misc_stats(self):
-        """shows how many servers butty's in, and how many people are in those servers"""
+        """Shows how many servers butty's in, and how many people are in those servers"""
         total = 0
         for server in self.bot.servers:
             total += len(server.members)
-
         await self.bot.say("I am currently being a sandwich in {} servers, feeding {} users".format(
             len(self.bot.servers), total)
         )
 
+
     @commands.command(name="invite")
     async def misc_invite(self):
-        """Show Butty's invite link
+        """Show's Butty's invite link
 
          Just in case you want to add it to your server"""
         await self.bot.say("https://harru.club/invite")
 
+
     @commands.command(name="clean", aliases=['purge'], pass_context=True)
     async def misc_clean(self, context, number: int = 0):
-        """Remove butty's messages and command spam
+        """<limit>  -  removes butty's commands and spam
 
         Removes any messages sent by butty, as well as any
-        messages starting with butty's command prefix"""
+        messages starting with butty's command prefix. 200 message limit"""
         if not is_admin(context):
             await self.bot.say("Sorry, only server admins can use this command")
             return None
@@ -60,6 +65,7 @@ class Misc:
 
         await self.bot.purge_from(context.message.channel, limit=number, check=self.should_remove)
 
+
     @commands.command(name="flip")
     async def misc_flip(self):
         """Flip a coin
@@ -68,14 +74,27 @@ class Misc:
         (as long as there's only two things to choose from)"""
         await self.bot.say("\\*flips coin* ... {}!".format(random.choice(['Heads', 'Tails'])))
 
+
     @commands.command(name="roll")
-    async def misc_roll(self, number_of_sides, ):
-        """roll x dice with y sides
-        Also accepts xdy format"""
-        pass
+    async def misc_roll(self, number_of_dice : int, number_of_sides : int):
+        """<x> <y>  -  where x and y are integers, rolls x dice with y sides
+
+        Rolls some dice, for when just two choices aren't enough"""
+        diceno = ""
+        if not number_of_sides > 100000000000 and not number_of_dice > 10:
+            print("yay")
+            for x in range(0, number_of_dice):
+                diceno += "For dice " + str(x + 1) + " you rolled: " + str(random.randint(1, number_of_sides)) + "\n"
+            await self.bot.say(diceno)
+        else:
+            await self.bot.say("The side limit is 100000000000 and the dice limit is 10")
+
 
     @commands.command(name="duck")
     async def misc_duck(self, *message):
+        """<query>  -  makes a lmddgtfy link for your <query>
+
+        lmddgtfy == Let Me Duck Duck Go That For You"""
         query = urllib.parse.quote(' '.join(message))
         await self.bot.say("http://lmddgtfy.net/?q=" + query)
 
