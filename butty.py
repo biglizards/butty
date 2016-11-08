@@ -50,11 +50,6 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    loggingchannel = bot.get_channel("206692095208062976")
-    if message.author.id != '135483608491229184' and message.content[0] == "[":
-        await bot.send_message(loggingchannel,
-                                  "**" + str(message.server) + "**: " + message.server.id + "\n**" + str(
-                                      message.author) + "**: " + message.author.id + "\n" + message.content)
     await bot.process_commands(message)
 
 try:
