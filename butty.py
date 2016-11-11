@@ -40,7 +40,7 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
-    # await bot.change_presence(game=discord.Game(name='i hate you'))
+    await bot.change_presence(game=discord.Game(name='"[help" for help'))
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)
