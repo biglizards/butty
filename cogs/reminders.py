@@ -5,7 +5,6 @@ from dateutil.relativedelta import relativedelta
 import parsedatetime.parsedatetime
 from pytz import timezone
 import sqlite3
-import sqlite3
 import asyncio
 
 
@@ -30,6 +29,7 @@ class Reminders:
     async def add(self, context):
         # oh god what is this shit
         # harru why you do this
+        # fuck off it works probably
         message = " ".join(context.message.content.split(" ")[2:])
         msg = message.split(",", 1)
         cal = parsedatetime.Calendar()
