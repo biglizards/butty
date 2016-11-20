@@ -10,6 +10,9 @@ import cogs.prefix
 prefix = cogs.prefix.Prefix()
 
 real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
+
+print(real_path)
+
 os.chdir(real_path)
 
 database = sqlite3.connect("cogs/buttybot.db")
