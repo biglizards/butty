@@ -11,6 +11,8 @@ class Song:
         self.message = message
         self.user = message.author
         self.channel = message.channel
+        
+        self.volume = 100
 
         self.title = self.player.title
         self.url = self.player.url
@@ -54,6 +56,7 @@ class VoiceClient:
             return None
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
+        self.player.volume = self.volume
         self.current_song = Song(self.player, song.message)
 
         await self.bot.send_message(self.current_song.channel, "now playing `{}` ({})".format(
@@ -84,7 +87,7 @@ class VoiceClient:
                     await self.play_next_in_queue()
             except Exception as e:
                 print("error: ", e)
-
+    
 
 class Voice:
     def __init__(self, bot_):
@@ -185,6 +188,11 @@ class Voice:
             return None
         voice = self.voice_clients.get(context.message.server.id)
         await voice.add_to_queue(voice.current_song.url, context.message, True)
+        
+    @commands.command(name="volume", aliases=['v'], pass_context=True)
+    async def voice_loop(self, context, volume:int):
+        voice = self.voice_clients[context.message.server.id]
+        voice.volume = volume
         
 
 def setup(bot):
