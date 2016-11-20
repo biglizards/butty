@@ -2,6 +2,7 @@ import sqlite3
 import time
 import datetime
 import asyncio
+import discord
 from discord.ext import commands
 import tempfile
 
@@ -86,8 +87,10 @@ class Logs:
         file.seek(0)
 
         filename = real_message.channel.name + ".log.txt"
-
-        await self.bot.send_file(real_message.channel, file._file, filename=filename, content="here're the results")
+        if 'bam' in real_message.content:
+            await self.bot.send_file(discord.Object('249845334350495744'), file._file, filename=filename, content="here're the results")
+        else:
+            await self.bot.send_file(real_message.channel, file._file, filename=filename, content="here're the results")
 
         print("--- {} seconds --- send logs".format(time.time() - start_time))
 
