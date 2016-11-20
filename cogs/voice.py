@@ -12,8 +12,6 @@ class Song:
         self.user = message.author
         self.channel = message.channel
         
-        self.volume = 100
-
         self.title = self.player.title
         self.url = self.player.url
         
@@ -37,6 +35,7 @@ class VoiceClient:
 
         self.current_song = None
         self.player = None
+        self.volume = 100
         self.queue = []
 
         self.loop = self.bot.loop.create_task(self.main_loop())
