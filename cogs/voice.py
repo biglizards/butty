@@ -190,7 +190,7 @@ class Voice:
         await voice.add_to_queue(voice.current_song.url, context.message, True)
         
     @commands.command(name="volume", aliases=['v'], pass_context=True)
-    async def voice_loop(self, context, volume:int):
+    async def voice_volume(self, context, volume:int):
         voice = self.voice_clients[context.message.server.id]
         voice.volume = volume / 100
         voice.player.volume = volume / 100
