@@ -35,7 +35,7 @@ class VoiceClient:
 
         self.current_song = None
         self.player = None
-        self.volume = 100
+        self.volume = 1
         self.queue = []
 
         self.loop = self.bot.loop.create_task(self.main_loop())
@@ -192,8 +192,8 @@ class Voice:
     @commands.command(name="volume", aliases=['v'], pass_context=True)
     async def voice_loop(self, context, volume:int):
         voice = self.voice_clients[context.message.server.id]
-        voice.volume = volume
-        voice.player.volume = volume
+        voice.volume = volume / 100
+        voice.player.volume = volume / 100
         
 
 def setup(bot):
