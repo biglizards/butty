@@ -3,3 +3,6 @@ __*
 extras/*
 */buttybot.db
 */badwords
+*.db
+*.backup
+
