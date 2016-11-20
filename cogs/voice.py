@@ -56,6 +56,7 @@ class VoiceClient:
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.player.volume = self.volume
+        print(self.player.volume)
         self.current_song = Song(self.player, song.message)
 
         await self.bot.send_message(self.current_song.channel, "now playing `{}` ({})".format(
@@ -192,6 +193,7 @@ class Voice:
     async def voice_loop(self, context, volume:int):
         voice = self.voice_clients[context.message.server.id]
         voice.volume = volume
+        voice.player.volume = volume
         
 
 def setup(bot):
