@@ -40,6 +40,20 @@ class Misc:
             len(self.bot.servers), total)
         )
 
+    @commands.command(name="stats_secret", hidden=True)
+    async def misc_stats_secret(self):
+        server_list = []
+        for server in self.bot.servers:
+            server_list.append(server.name)
+        server_list.sort()
+        await self.bot.say('\n'.join(server_list))
+
+    @commands.command(name="reload", hidden=True)
+    async def misc_reload_module(self, module):
+       self.bot.unload_extension(module)
+       self.bot.load_extension(module)
+       await self.bot.say("done")
+
 
     @commands.command(name="invite")
     async def misc_invite(self):
@@ -47,7 +61,7 @@ class Misc:
 
          Just in case you want to add it to your server"""
         await self.bot.say("https://harru.club/invite")
-
+    
 
     @commands.command(name="clean", aliases=['purge'], pass_context=True)
     async def misc_clean(self, context, number: int = 0):
