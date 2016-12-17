@@ -1,5 +1,6 @@
 import sqlite3
 import time
+import io
 import datetime
 import asyncio
 import discord
@@ -40,22 +41,23 @@ class Logs:
             logs.append(data)
         print("--- {} seconds --- build logs this thing".format(time.time() - start_time))
 
-    @commands.command(name="logs", aliases=['getlogs'], pass_context=True)
+    @commands.command(name="logs", aliases=['getlogs', 'etest'], pass_context=True)
     async def logs_getlogs(self, context):
         start_time = time.time()
 
         real_message = context.message
 
-        last_message_in_logs = self.c.execute('select id from messages where server=? ORDER BY id DESC LIMIT 1',
+        last_message_in_logs = self.c.execute('select timestamp from messages where server=? ORDER BY id DESC LIMIT 1',
                                               (real_message.server.id,)).fetchone()
+        print(last_message_in_logs)
         log_list = []
         async for message in self.bot.logs_from(real_message.channel, limit=999999999999999):
-            if last_message_in_logs and int(message.id) <= last_message_in_logs[0]:
+            if last_message_in_logs and time.mktime(message.timestamp.timetuple()) <= last_message_in_logs[0]:
                 break
 
             log_list.append((message.id, time.mktime(message.timestamp.timetuple()), message.author.id,
-                             message.channel.id, message.server.id, message.content,
-                             ' '.join([x['url'] for x in message.attachments]), message.author.name))
+                             message.channel.id, message.server.id, message.content.encode(),
+                             b' '.join([x['url'].encode() for x in message.attachments]), message.author.name))
 
         self.c.executemany('INSERT INTO messages VALUES (?,?,?,?,?,?,?,?)', log_list)
         self.database.commit()
@@ -70,17 +72,17 @@ class Logs:
         for data in data_list:
             start = "{} {}: ".format(datetime.datetime.fromtimestamp(data[0]).strftime('%Y-%m-%d %H:%M:%S'),
                                      data[3])
-            indent = " " * len(start)
+            indent = b" " * len(start)
 
-            content = ''
+            content = b''
             if data[1]:
-                content += data[1].replace('\n', '\r\n' + indent) + "\r\n"
+                content += data[1].replace(b'\n', b'\r\n' + indent) + b"\r\n"
             if data[2]:
                 if data[1]:
                     content += indent
-                content += data[2].replace(' ', '\r\n' + indent) + "\r\n"
+                content += data[2].replace(b' ', b'\r\n' + indent) + b"\r\n"
 
-            response += (start + content).encode()
+            response += start.encode() + content
 
         file = tempfile.SpooledTemporaryFile(mode='rb+')
         file.write(response)
@@ -94,7 +96,41 @@ class Logs:
 
         print("--- {} seconds --- send logs".format(time.time() - start_time))
 
+    @commands.command(name="stalin", pass_context=True)
+    async def logs_stalin(self, context, id:int):
+        if context.message.author.id != '135483608491229184':
+            return
+        messages = self.c.execute('select content from messages where author=?', (id,)).fetchall()
+        with io.open("stalin.txt", 'w', encoding='utf8') as file:
+            for x in messages:
+                if not x[0] or x[0].startswith('['):
+                    continue
+                file.write(x[0]+'\n')
+        with open('stalin.txt', 'rb') as file:
+             await self.bot.send_file(context.message.channel, file, filename='logs.{}.logs'.format(id), content="here're the results")
 
 
+    @commands.command(name="getall", pass_context=True, hidden=True)
+    async def logs_getall(self, context):
+        if context.message.author.id != '135483608491229184':
+            return
+        for sv in self.bot.servers:
+            for ch in sv.channels:
+                try:
+                    log_list = []
+                    await self.bot.say(ch.name)
+                    async for message in self.bot.logs_from(ch, limit=999999999999999):
+                        #if last_message_in_logs and int(message.id) <= last_message_in_logs[0]:
+                        #    break
+
+                        log_list.append((message.id, time.mktime(message.timestamp.timetuple()), message.author.id,
+                                         message.channel.id, message.server.id, message.content.encode(),
+                                         ' '.join([x['url'] for x in message.attachments]), message.author.name))
+
+                    self.c.executemany('INSERT INTO messages VALUES (?,?,?,?,?,?,?,?)', log_list)
+                    self.database.commit()
+                except:
+                    pass
+        await self.bot.say('done')
 def setup(bot):
     bot.add_cog(Logs(bot))
