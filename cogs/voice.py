@@ -11,7 +11,7 @@ class Song:
         self.message = message
         self.user = message.author
         self.channel = message.channel
-
+        
         self.title = self.player.title
         self.url = self.player.url
         
@@ -35,6 +35,7 @@ class VoiceClient:
 
         self.current_song = None
         self.player = None
+        self.volume = 0.2
         self.queue = []
 
         self.loop = self.bot.loop.create_task(self.main_loop())
@@ -54,6 +55,7 @@ class VoiceClient:
             return None
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
+        self.player.volume = self.volume
         self.current_song = Song(self.player, song.message)
 
         await self.bot.send_message(self.current_song.channel, "now playing `{}` ({})".format(
@@ -84,7 +86,7 @@ class VoiceClient:
                     await self.play_next_in_queue()
             except Exception as e:
                 print("error: ", e)
-
+    
 
 class Voice:
     def __init__(self, bot_):
@@ -173,6 +175,8 @@ class Voice:
                 if song.user != context.message.author:
                     await self.bot.say("You can't stop the music~~\n(someone else still has something queued)")
                     return None
+            if voice.current_song.user != context.message.author:
+                await self.bot.say("You can't stop the music~~\n(someone else is playing something)")
         await voice.client.disconnect()
         voice.client = None
         voice.queue = []
@@ -181,8 +185,16 @@ class Voice:
         
     @commands.command(name="loop", aliases=['loopadoop'], pass_context=True)
     async def voice_loop(self, context):
+        if not misc.is_admin(context):
+            return None
         voice = self.voice_clients.get(context.message.server.id)
         await voice.add_to_queue(voice.current_song.url, context.message, True)
+        
+    @commands.command(name="volume", aliases=['v'], pass_context=True)
+    async def voice_volume(self, context, volume:int):
+        voice = self.voice_clients[context.message.server.id]
+        voice.volume = volume / 100
+        voice.player.volume = volume / 100
         
 
 def setup(bot):
