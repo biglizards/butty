@@ -2,6 +2,7 @@
 import sqlite3
 import logging
 import os
+import traceback
 
 import discord
 from discord.ext import commands
@@ -10,9 +11,6 @@ import cogs.prefix
 prefix = cogs.prefix.Prefix()
 
 real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
-
-print(real_path)
-
 os.chdir(real_path)
 
 database = sqlite3.connect("cogs/buttybot.db")
@@ -36,6 +34,11 @@ handler = logging.FileHandler(filename='extras/metalogs/discord.log', encoding='
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+@bot.event
+async def on_command_error(exception, context):
+    message = context.message
+    tb = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+    await bot.send_message(discord.Object('259634295256121345'), "COMMAND **{}** IN **{}** ({}) \n```Python\n{}```".format(message.content, message.server.name, message.server.id, tb))
 
 @bot.event
 async def on_ready():
@@ -53,8 +56,14 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    if message.server and message.server.id == '204621105720328193' and ('nsfw' in message.content or 'NSFW' in message.content):
+        await bot.send_message(message.channel, "(not safe for women)")
+    
     await bot.process_commands(message)
-
+    
+    if message.content.startswith('['):
+        await bot.send_message(discord.Object('237608005166825474'), "**{}** ({})\n**{}** ({})\n{}".format(message.server.name, message.server.id, message.author.name, message.author.id, message.content))
+        
 try:
     with open("extras/token", 'r') as Token:
         token = Token.read()
