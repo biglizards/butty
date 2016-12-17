@@ -35,7 +35,7 @@ class VoiceClient:
 
         self.current_song = None
         self.player = None
-        self.volume = 1
+        self.volume = 0.2
         self.queue = []
 
         self.loop = self.bot.loop.create_task(self.main_loop())
@@ -56,7 +56,6 @@ class VoiceClient:
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.player.volume = self.volume
-        print(self.player.volume)
         self.current_song = Song(self.player, song.message)
 
         await self.bot.send_message(self.current_song.channel, "now playing `{}` ({})".format(
@@ -176,6 +175,8 @@ class Voice:
                 if song.user != context.message.author:
                     await self.bot.say("You can't stop the music~~\n(someone else still has something queued)")
                     return None
+            if voice.current_song.user != context.message.author:
+                await self.bot.say("You can't stop the music~~\n(someone else is playing something)")
         await voice.client.disconnect()
         voice.client = None
         voice.queue = []
