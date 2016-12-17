@@ -120,7 +120,7 @@ class Misc:
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             os.system("git pull && systemctl restart butty")
 
-    @commands.command(name="presence", aliases=["statuschange"], pass_context=True)
+    @commands.command(name="presence", aliases=["statuschange"], pass_context=True, hidden=True)
     async def misc_statuschange(self, ctx, *newgame : str):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             await self.bot.change_presence(game=discord.Game(name=newgame))
