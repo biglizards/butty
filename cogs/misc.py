@@ -114,7 +114,10 @@ class Misc:
             await self.bot.say(diceno)
         else:
             await self.bot.say("The side limit is 100000000000 and the dice limit is 10")
-
+    
+    @commands.command(name="say")
+    async def misc_say(self, *message):
+        await self.bot.say(message)
 
     @commands.command(name="duck")
     async def misc_duck(self, *message):
