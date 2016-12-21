@@ -48,6 +48,16 @@ class Misc:
         server_list.sort()
         await self.bot.say('\n'.join(server_list))
 
+    @commands.command(name="oinvite", hidden=True, pass_context=True)
+    async def misc_other_invite(self, ctx, name):
+        if ctx.message.author.id != '135483608491229184':
+            return
+        for server in self.bot.servers:
+            if server.name == name:
+                await self.bot.say(len(server.members))
+                await self.bot.say(await self.bot.create_invite(server))
+
+
     @commands.command(name="reload", hidden=True)
     async def misc_reload_module(self, module):
        self.bot.unload_extension(module)
