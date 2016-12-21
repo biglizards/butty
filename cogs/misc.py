@@ -117,7 +117,7 @@ class Misc:
     
     @commands.command(name="say")
     async def misc_say(self, *message):
-        await self.bot.say(message)
+        await self.bot.say(' '.join(message))
 
     @commands.command(name="duck")
     async def misc_duck(self, *message):
