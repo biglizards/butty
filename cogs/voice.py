@@ -108,17 +108,18 @@ class Voice:
           play relaxing flute sounds
           play https://www.youtube.com/watch?v=y_gknRMZ-OU
         """
+        if not song:
+            context.invoked_with = "help"
+            await commands.bot._default_help_command(context, "play")
         message = context.message
 
         voice = self.voice_clients.get(message.server.id)
-        if voice:
-            print(voice.client.socket)
         if not voice or not voice.client:
             if message.author.voice_channel:
                 voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
                 self.voice_clients[message.server.id] = voice
             else:
-                await self.bot.say("You aren't connected to a voice channel\nhint do [v j")
+                await self.bot.say("You aren't connected to a voice channel")
 
         await voice.add_to_queue(' '.join(song), message)
 
