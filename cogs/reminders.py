@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -8,20 +7,38 @@ import sqlite3
 import asyncio
 
 
+async def reminder_loop(self):
+    while not self.bot.is_closed:
+        now = str(datetime.now(timezone('UTC')))[:-16]
+        alerts = self.cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
+        users = self.cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
+        channels = self.cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
+        if len(alerts) != 0:
+            for x in range(0, len(alerts)):
+                channel = self.bot.get_channel(channels[x][0])
+                await self.bot.send_message(channel, "<@" + users[x][0] + ">" + alerts[x][0])
+                self.cursor.execute("DELETE FROM alert WHERE time=?", (now,))
+                self.database.commit()
+        await asyncio.sleep(5)
+
+
 class Reminders:
 
     def __init__(self, bot):
         self.bot = bot
         self.database = sqlite3.connect("cogs/buttybot.db")
         self.cursor = self.database.cursor()
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS alert
+                          (user, channel, time, message, repeat, id)''')
+        self.loop = self.bot.loop.create_task(reminder_loop(self))
 
     @commands.group(aliases=['r'], brief='do "help r" for more detail')
     async def reminder(self):
         """Because you need to not forget stuff
 
         EG:
-        ?reminder add 2 hours, remove the cake from hell
-        ?r show
+        [reminder add 2 hours, remove the cake from hell
+        [r show
         """
         pass
 
