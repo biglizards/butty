@@ -16,15 +16,19 @@ def is_admin(context):
 
 
 class Misc:
+
+
     def __init__(self, bot_):
         self.bot = bot_
         self.prefix = prefix.Prefix()
+
 
     def should_remove(self, m):
         prefix_ = self.prefix.get_prefix(self.bot, m, False)
         if m.content.startswith(prefix_) or m.author.id == "229223616217088001":
             return True
         return False
+
 
     @commands.command(name="stats", hidden=True)
     async def misc_stats(self):
@@ -36,12 +40,38 @@ class Misc:
             len(self.bot.servers), total)
         )
 
+    @commands.command(name="stats_secret", hidden=True)
+    async def misc_stats_secret(self):
+        server_list = []
+        for server in self.bot.servers:
+            server_list.append(server.name)
+        server_list.sort()
+        await self.bot.say('\n'.join(server_list))
+
+    @commands.command(name="oinvite", hidden=True, pass_context=True)
+    async def misc_other_invite(self, ctx, name):
+        if ctx.message.author.id != '135483608491229184':
+            return
+        for server in self.bot.servers:
+            if server.name == name:
+                await self.bot.say(len(server.members))
+                await self.bot.say(await self.bot.create_invite(server))
+
+
+    @commands.command(name="reload", hidden=True)
+    async def misc_reload_module(self, module):
+       self.bot.unload_extension(module)
+       self.bot.load_extension(module)
+       await self.bot.say("done")
+
+
     @commands.command(name="invite")
     async def misc_invite(self):
         """Show's Butty's invite link
 
          Just in case you want to add it to your server"""
         await self.bot.say("https://harru.club/invite")
+    
 
     @commands.command(name="clean", aliases=['purge'], pass_context=True)
     async def misc_clean(self, context, number: int = 0):
@@ -61,6 +91,7 @@ class Misc:
 
         await self.bot.purge_from(context.message.channel, limit=number, check=self.should_remove)
 
+
     @commands.command(name="flip")
     async def misc_flip(self):
         """Flip a coin
@@ -68,6 +99,7 @@ class Misc:
         For, you know, picking something randomly
         (as long as there's only two things to choose from)"""
         await self.bot.say("\\*flips coin* ... {}!".format(random.choice(['Heads', 'Tails'])))
+
 
     @commands.command(name="roll")
     async def misc_roll(self, number_of_dice : int, number_of_sides : int):
@@ -82,6 +114,10 @@ class Misc:
             await self.bot.say(diceno)
         else:
             await self.bot.say("The side limit is 100000000000 and the dice limit is 10")
+    
+    @commands.command(name="say")
+    async def misc_say(self, *message):
+        await self.bot.say(' '.join(message))
 
     @commands.command(name="duck")
     async def misc_duck(self, *message):
@@ -91,12 +127,13 @@ class Misc:
         query = urllib.parse.quote(' '.join(message))
         await self.bot.say("http://lmddgtfy.net/?q=" + query)
 
+
     @commands.command(name="restart", aliases=["getout"], pass_context=True, hidden=True)
     async def misc_restart(self, ctx):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             os.system("git pull && systemctl restart butty")
 
-    @commands.command(name="presence", aliases=["statuschange"], pass_context=True)
+    @commands.command(name="presence", aliases=["statuschange"], pass_context=True, hidden=True)
     async def misc_statuschange(self, ctx, *newgame : str):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             await self.bot.change_presence(game=discord.Game(name=newgame))

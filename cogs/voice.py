@@ -35,7 +35,7 @@ class VoiceClient:
 
         self.current_song = None
         self.player = None
-        self.volume = 1
+        self.volume = 0.2
         self.queue = []
 
         self.loop = self.bot.loop.create_task(self.main_loop())
@@ -56,7 +56,6 @@ class VoiceClient:
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.player.volume = self.volume
-        print(self.player.volume)
         self.current_song = Song(self.player, song.message)
 
         await self.bot.send_message(self.current_song.channel, "now playing `{}` ({})".format(
@@ -109,17 +108,18 @@ class Voice:
           play relaxing flute sounds
           play https://www.youtube.com/watch?v=y_gknRMZ-OU
         """
+        if not song:
+            context.invoked_with = "help"
+            await commands.bot._default_help_command(context, "play")
         message = context.message
 
         voice = self.voice_clients.get(message.server.id)
-        if voice:
-            print(voice.client.socket)
         if not voice or not voice.client:
             if message.author.voice_channel:
                 voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
                 self.voice_clients[message.server.id] = voice
             else:
-                await self.bot.say("You aren't connected to a voice channel\nhint do [v j")
+                await self.bot.say("You aren't connected to a voice channel")
 
         await voice.add_to_queue(' '.join(song), message)
 
@@ -176,6 +176,8 @@ class Voice:
                 if song.user != context.message.author:
                     await self.bot.say("You can't stop the music~~\n(someone else still has something queued)")
                     return None
+            if voice.current_song.user != context.message.author:
+                await self.bot.say("You can't stop the music~~\n(someone else is playing something)")
         await voice.client.disconnect()
         voice.client = None
         voice.queue = []
