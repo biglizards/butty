@@ -10,7 +10,9 @@ class Prefix:
         self.prefixes = {}
 
     def get_prefix(self, bot, message, check_db=True):
-        if message.server is not None and '{0.me.mention} '.format(message.server) in message.content:
+        if not message.server:
+            return '['
+        if '{0.me.mention} '.format(message.server) in message.content:
             return '{0.me.mention} '.format(message.server)
         elif '{0.user.mention} '.format(bot) in message.content:
             return '{0.user.mention} '.format(bot) # because sometimes a memtion has an ! in it for no reason
