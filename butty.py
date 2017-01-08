@@ -21,6 +21,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS prefixes
 
 description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
+bot.voice_reload_cache = None
 
 # add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
 startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.logs"]
@@ -63,6 +64,13 @@ async def on_message(message):
     
     if message.content.startswith('['):
         await bot.send_message(discord.Object('237608005166825474'), "**{}** ({})\n**{}** ({})\n{}".format(message.server.name, message.server.id, message.author.name, message.author.id, message.content))
+
+@bot.command(name="reload", hidden=True, pass_context=True)
+async def reload_module(ctx, module):
+    if ctx.message.author.id != '135483608491229184': return
+    bot.unload_extension(module)
+    bot.load_extension(module)
+    await bot.say("done")
         
 try:
     with open("extras/token", 'r') as Token:

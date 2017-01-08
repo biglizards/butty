@@ -17,15 +17,20 @@ class Song:
         
         self.loop = loop
 
-        m, s = divmod(self.player.duration, 60)
-        h, m = divmod(m, 60)
+        try:
+            m, s = divmod(self.player.duration, 60)
+            h, m = divmod(m, 60)
 
-        if h:
-            self.duration = "{}:{}:{}".format(h,m,s)
-        elif m:
-            self.duration = "{}:{}".format(m, s)
-        else:
-            self.duration = "{}".format(s)
+            if h:
+                self.duration = "{}:{}:{}".format(h,m,s)
+            elif m:
+                self.duration = "{}:{}".format(m, s)
+            else:
+                self.duration = "{}".format(s)
+        except:
+            self.duration = "it's a stream"
+            self.title = self.url.split("/")[2].split(":")[0]
+
 
 
 class VoiceClient:
@@ -92,6 +97,13 @@ class Voice:
     def __init__(self, bot_):
         self.bot = bot_
         self.voice_clients = {}
+        if self.bot.voice_reload_cache is not None:
+            self.voice_clients = self.bot.voice_reload_cache.copy()
+            self.bot.voice_reload_cache = None
+
+    def __unload(self):
+        self.bot.voice_reload_cache = self.voice_clients
+
 
     '''
     @commands.group(pass_context=True)
