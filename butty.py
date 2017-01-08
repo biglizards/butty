@@ -24,7 +24,7 @@ bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 bot.voice_reload_cache = None
 
 # add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
-startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.logs"]
+startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc"]
 
 
 logger = logging.getLogger('discord')
