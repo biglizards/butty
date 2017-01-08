@@ -137,7 +137,7 @@ class Misc:
    
     @commands.command(name="vdbug", pass_context=True, hidden=True)
     async def voice_debug(self, ctx):
-        await self.bot.say(ctx.message.content[7:])
+        await self.bot.say("```Python ", ctx.message.content[7:], "```")
         code = ctx.message.content[7:].strip("`")
         codeobj = compile(code, '', 'exec')
         
@@ -181,6 +181,10 @@ class Misc:
 
         await self.bot.say(python.format(result))
 
+    @commands.command(pass_context = True, hidden=True)
+    async def gitpull(self, ctx):
+        if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
+            os.system("git pull")
 
 
 
