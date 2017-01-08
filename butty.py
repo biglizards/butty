@@ -67,7 +67,7 @@ async def on_message(message):
 
 @bot.command(name="reload", hidden=True, pass_context=True)
 async def reload_module(ctx, module):
-    if ctx.message.author.id != '135483608491229184': return
+    if ctx.message.author.id != '135483608491229184' or ctx.message.author.id != '135496683009081345' : return
     bot.unload_extension(module)
     bot.load_extension(module)
     await bot.say("done")
