@@ -185,6 +185,7 @@ class Misc:
     async def gitpull(self, ctx):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             os.system("git pull")
+            self.bot.say("done")
 
 
 
