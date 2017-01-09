@@ -181,18 +181,11 @@ class Misc:
 
         await self.bot.say(python.format(result))
 
-    @commands.command(pass_context = True, hidden=True)
-    async def gitpull(self, ctx):
+    @commands.command(pass_context=True, hidden=True)
+    async def misc_gitpull(self, ctx):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             os.system("git pull")
             self.bot.say("done")
-            
-    @bot.command(name="reload2", hidden=True, pass_context=True)
-    async def reload_module2(ctx, module):
-        if ctx.message.author.id != '135483608491229184' or ctx.message.author.id != '135496683009081345' : return
-        bot.unload_extension(module)
-        bot.load_extension(module)
-        await bot.say("done")
 
 
 
