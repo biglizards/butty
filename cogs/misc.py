@@ -137,7 +137,7 @@ class Misc:
    
     @commands.command(name="vdbug", pass_context=True, hidden=True)
     async def voice_debug(self, ctx):
-        await self.bot.say("```Python " + ctx.message.content[7:] + "```")
+        await self.bot.say("```Python\n" + ctx.message.content[7:] + "```")
         code = ctx.message.content[7:].strip("`")
         codeobj = compile(code, '', 'exec')
         
