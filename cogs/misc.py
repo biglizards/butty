@@ -181,11 +181,11 @@ class Misc:
 
         await self.bot.say(python.format(result))
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(name="gitpull", pass_context=True, hidden=True)
     async def misc_gitpull(self, ctx):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             os.system("git pull")
-            self.bot.say("done")
+            await self.bot.say("done")
 
 
 
