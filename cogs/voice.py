@@ -34,9 +34,11 @@ class Song:
 
 
 class VoiceClient:
-    def __init__(self, client, bot_):
+    def __init__(self, channel, bot_):
         self.bot = bot_
-        self.client = client
+
+        self.channel = channel
+        self.server = channel.server
 
         self.current_song = None
         self.player = None
@@ -44,6 +46,9 @@ class VoiceClient:
         self.queue = []
 
         self.loop = self.bot.loop.create_task(self.main_loop())
+
+    def client(self):
+        return await self.bot.get_voice_client_in(self.server)
 
     async def play_next_in_queue(self):
         options = {
@@ -58,6 +63,9 @@ class VoiceClient:
         except IndexError:
             print("error: Nothing next in queue")
             return None
+       
+        if not self.client:
+            await self.bot.join_voice_channel(self.channel)
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.player.volume = self.volume
@@ -128,7 +136,7 @@ class Voice:
         voice = self.voice_clients.get(message.server.id)
         if not voice or not voice.client:
             if message.author.voice_channel:
-                voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
+                voice = VoiceClient(message.author.voice_channel, self.bot)
                 self.voice_clients[message.server.id] = voice
             else:
                 await self.bot.say("You aren't connected to a voice channel")
