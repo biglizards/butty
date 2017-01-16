@@ -96,7 +96,7 @@ class Logs:
 
         print("--- {} seconds --- send logs".format(time.time() - start_time))
 
-    @commands.command(name="stalin", pass_context=True)
+    @commands.command(name="stalin", pass_context=True, hidden=True)
     async def logs_stalin(self, context, id:int):
         if context.message.author.id != '135483608491229184':
             return
@@ -132,5 +132,7 @@ class Logs:
                 except:
                     pass
         await self.bot.say('done')
+
 def setup(bot):
-    bot.add_cog(Logs(bot))
+    pass
+    #bot.add_cog(Logs(bot))
