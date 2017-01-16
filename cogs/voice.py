@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 from discord.ext import commands
 
@@ -47,8 +48,9 @@ class VoiceClient:
 
         self.loop = self.bot.loop.create_task(self.main_loop())
 
+    @property
     def client(self):
-        return await self.bot.get_voice_client_in(self.server)
+        return self.bot.voice_client_in(self.server)
 
     async def play_next_in_queue(self):
         options = {
@@ -63,9 +65,6 @@ class VoiceClient:
         except IndexError:
             print("error: Nothing next in queue")
             return None
-       
-        if not self.client:
-            await self.bot.join_voice_channel(self.channel)
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.player.volume = self.volume
@@ -81,8 +80,11 @@ class VoiceClient:
             'default_search': 'auto',
             'quiet': True,
             'ignoreerrors': True,
-            #'skip_download': True,
+            # 'skip_download': True,
         }
+
+        if not self.client:
+            await self.bot.join_voice_channel(self.channel)
 
         song = Song(await self.client.create_ytdl_player(name, ytdl_options=options, before_options='-help'), message, loop)
         song.player = None
@@ -98,7 +100,7 @@ class VoiceClient:
                 if self.queue and (not self.player or not self.player.is_playing()):
                     await self.play_next_in_queue()
             except Exception as e:
-                print("error: ", e)
+                print(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
     
 
 class Voice:
@@ -134,12 +136,14 @@ class Voice:
         message = context.message
 
         voice = self.voice_clients.get(message.server.id)
+
         if not voice or not voice.client:
             if message.author.voice_channel:
                 voice = VoiceClient(message.author.voice_channel, self.bot)
                 self.voice_clients[message.server.id] = voice
             else:
                 await self.bot.say("You aren't connected to a voice channel")
+                return
 
         await voice.add_to_queue(' '.join(song), message)
 
