@@ -17,21 +17,28 @@ class Song:
         
         self.loop = loop
 
-        m, s = divmod(self.player.duration, 60)
-        h, m = divmod(m, 60)
+        try:
+            m, s = divmod(self.player.duration, 60)
+            h, m = divmod(m, 60)
 
-        if h:
-            self.duration = "{}:{}:{}".format(h,m,s)
-        elif m:
-            self.duration = "{}:{}".format(m, s)
-        else:
-            self.duration = "{}".format(s)
+            if h:
+                self.duration = "{}:{}:{}".format(h,m,s)
+            elif m:
+                self.duration = "{}:{}".format(m, s)
+            else:
+                self.duration = "{}".format(s)
+        except:
+            self.duration = "it's a stream"
+            self.title = self.url.split("/")[2].split(":")[0]
+
 
 
 class VoiceClient:
-    def __init__(self, client, bot_):
+    def __init__(self, channel, bot_):
         self.bot = bot_
-        self.client = client
+
+        self.channel = channel
+        self.server = channel.server
 
         self.current_song = None
         self.player = None
@@ -39,6 +46,9 @@ class VoiceClient:
         self.queue = []
 
         self.loop = self.bot.loop.create_task(self.main_loop())
+
+    def client(self):
+        return await self.bot.get_voice_client_in(self.server)
 
     async def play_next_in_queue(self):
         options = {
@@ -53,6 +63,9 @@ class VoiceClient:
         except IndexError:
             print("error: Nothing next in queue")
             return None
+       
+        if not self.client:
+            await self.bot.join_voice_channel(self.channel)
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
         self.player.volume = self.volume
@@ -92,6 +105,13 @@ class Voice:
     def __init__(self, bot_):
         self.bot = bot_
         self.voice_clients = {}
+        if self.bot.voice_reload_cache is not None:
+            self.voice_clients = self.bot.voice_reload_cache.copy()
+            self.bot.voice_reload_cache = None
+
+    def __unload(self):
+        self.bot.voice_reload_cache = self.voice_clients
+
 
     '''
     @commands.group(pass_context=True)
@@ -108,17 +128,18 @@ class Voice:
           play relaxing flute sounds
           play https://www.youtube.com/watch?v=y_gknRMZ-OU
         """
+        if not song:
+            context.invoked_with = "help"
+            await commands.bot._default_help_command(context, "play")
         message = context.message
 
         voice = self.voice_clients.get(message.server.id)
-        if voice:
-            print(voice.client.socket)
         if not voice or not voice.client:
             if message.author.voice_channel:
-                voice = VoiceClient(await self.bot.join_voice_channel(message.author.voice_channel), self.bot)
+                voice = VoiceClient(message.author.voice_channel, self.bot)
                 self.voice_clients[message.server.id] = voice
             else:
-                await self.bot.say("You aren't connected to a voice channel\nhint do [v j")
+                await self.bot.say("You aren't connected to a voice channel")
 
         await voice.add_to_queue(' '.join(song), message)
 
