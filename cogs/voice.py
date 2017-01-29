@@ -2,6 +2,7 @@ import asyncio
 import traceback
 
 from discord.ext import commands
+from discord import opus
 
 import cogs.misc as misc
 
@@ -12,10 +13,10 @@ class Song:
         self.message = message
         self.user = message.author
         self.channel = message.channel
-        
+
         self.title = self.player.title
         self.url = self.player.url
-        
+
         self.loop = loop
 
         try:
@@ -101,10 +102,11 @@ class VoiceClient:
                     await self.play_next_in_queue()
             except Exception as e:
                 print(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
-    
+
 
 class Voice:
     def __init__(self, bot_):
+        #opus.load_opus("extras/opus.so")
         self.bot = bot_
         self.voice_clients = {}
         if self.bot.voice_reload_cache is not None:
