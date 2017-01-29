@@ -38,6 +38,9 @@ logger.addHandler(handler)
 
 @bot.event
 async def on_command_error(exception, context):
+    if type(exception) == discord.ext.commands.errors.CommandNotFound):
+        return
+
     message = context.message
     tb = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))
 
