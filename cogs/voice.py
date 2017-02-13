@@ -2,6 +2,7 @@ import asyncio
 import traceback
 import threading
 import concurrent.futures
+from random import shuffle
 
 from discord.ext import commands
 # from discord import opus
@@ -298,6 +299,15 @@ class Voice:
             await voice.add_to_queue(url, message, playlist=x['title'])
 
         await self.bot.say("Playlist successfully added to queue")
+    
+    @commands.command(name="shuffle", aliases=['sh'], pass_context=True)
+    async def voice_shuffle(self, context):
+        voice = self.voice_clients.get(context.message.server.id)
+        if not voice:
+            await self.bot.say("I can do a dance, but there's nothing in the queue (use [play)")
+            return
+        shuffle(voice.queue)
+        await self.bot.say("Queue shuffled")
 
 
 def get_playlist_info(song, info):
