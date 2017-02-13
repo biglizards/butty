@@ -43,7 +43,7 @@ class Song:
             self.duration = None
             self.title = self.url.split("/")[2].split(":")[0]
 
-        if not self.duration:
+        if self.duration == "(0)":
             self.duration = ""
 
 
