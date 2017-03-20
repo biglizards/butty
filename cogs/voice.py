@@ -81,6 +81,7 @@ class VoiceClient:
             return None
 
         self.player = await self.client.create_ytdl_player(song.url, ytdl_options=options)
+        self.player.is_paused = False
         self.player.volume = self.volume
         self.current_song = Song(self.player, song.message)
 
@@ -98,7 +99,10 @@ class VoiceClient:
         }
 
         if not self.client:
-            await self.bot.join_voice_channel(self.channel)
+            try:
+                await self.bot.join_voice_channel(self.channel)
+            except concurrent.futures._base.TimeoutError:
+                await self.bot.say("Well, that's an error. I _think_ doing [l will fix it, though\nFeel free to contact me about this")
 
         if not playlist:
             player = await self.client.create_ytdl_player(name, ytdl_options=options, before_options='-help')
@@ -120,7 +124,7 @@ class VoiceClient:
         while True:
             try:
                 await asyncio.sleep(1)
-                if self.queue and (not self.player or not self.player.is_playing()):
+                if self.queue and (not self.player or (not self.player.is_playing() and not self.player.is_paused)):
                     await self.play_next_in_queue()
             except concurrent.futures.CancelledError:
                 break
@@ -227,7 +231,7 @@ class Voice:
             return
 
         song = voice.current_song
-        await self.bot.say("now playing `{}` ({})".format(song.title, song.duration))
+        await self.bot.say("now playing `{}` {}".format(song.title, song.duration))
 
     @commands.command(name="leave", aliases=['l'], pass_context=True)
     async def voice_leave(self, context):
@@ -300,7 +304,7 @@ class Voice:
 
         await self.bot.say("Playlist successfully added to queue")
     
-    @commands.command(name="shuffle", aliases=['sh'], pass_context=True)
+    @commands.command(name="shuffle", aliases=['sh'], pass_context=True, hidden=True)
     async def voice_shuffle(self, context):
         voice = self.voice_clients.get(context.message.server.id)
         if not voice:
@@ -309,6 +313,25 @@ class Voice:
         shuffle(voice.queue)
         await self.bot.say("Queue shuffled")
 
+    @commands.command(name="pause", pass_context=True)
+    async def voice_pause(self, context):
+        voice = self.voice_clients.get(context.message.server.id)
+        if not voice or not voice.player:
+            await self.bot.say("Wow you sure have nothing playing right now\nwhy would you pause nothign\nthat doesn't make any sense")
+            return
+        voice.player.pause()
+        voice.player.is_paused = True
+        await self.bot.say("paused, probably")
+
+    @commands.command(name="resume", aliases=['unpause'], pass_context=True, hidden=True)
+    async def voice_unpause(self, context):
+        voice = self.voice_clients.get(context.message.server.id)
+        if not voice or not voice.player:
+            await self.bot.say("DW nothing was paused to begin with")
+            return
+        voice.player.resume()
+        voice.player.is_paused = False
+        await self.bot.say("unpaused, probably")
 
 def get_playlist_info(song, info):
     ydl = youtube_dl.YoutubeDL({"extract_flat": True, 'quiet': True})
