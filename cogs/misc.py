@@ -110,7 +110,7 @@ class Misc:
             await self.bot.say(diceno)
         else:
             await self.bot.say("The side limit is 100000000000 and the dice limit is 10")
-    
+
     @commands.command(name="say")
     async def misc_say(self, *message):
         await self.bot.say(' '.join(message))
@@ -134,21 +134,21 @@ class Misc:
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             await self.bot.change_presence(game=discord.Game(name=' '.join(newgame)))
             print("yay")
-   
+
     @commands.command(name="vdbug", pass_context=True, hidden=True)
     async def voice_debug(self, ctx):
         """Stop letting people use commands they shouldn't you bastard"""
         if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345': return
-        
+
         await self.bot.say("```Python\n" + ctx.message.content[7:] + "```")
         code = ctx.message.content[7:].strip("`")
         codeobj = compile(code, '', 'exec')
-        
+
         buffer = StringIO()
         sys.stdout = buffer
 
         exec(codeobj, globals(), locals())
-        
+
         sys.stdout = sys.__stdout__
 
         await self.bot.say(buffer.getvalue())
@@ -189,13 +189,22 @@ class Misc:
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             os.system("git pull")
             await self.bot.say("done")
-            
+
     @commands.command(name="reload2", hidden=True, pass_context=True)
     async def reload_module2(self, ctx, module):
         if ctx.message.author.id == '135483608491229184' or ctx.message.author.id == '135496683009081345':
             self.bot.unload_extension(module)
             self.bot.load_extension(module)
             await self.bot.say("done")
+    
+    @commands.command(name="invites", hidden=True, pass_context=True)
+    async def invites(self, ctx):
+        invs = await self.bot.invites_from(ctx.message.server)
+        t = 0
+        for x in invs:
+            if x.inviter == ctx.message.author:
+                t += x.uses
+        await self.bot.say("{} has {} invites".format(ctx.message.author.name, t))
 
 
 
