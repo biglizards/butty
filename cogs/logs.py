@@ -132,5 +132,7 @@ class Logs:
                 except:
                     pass
         await self.bot.say('done')
+
 def setup(bot):
-    bot.add_cog(Logs(bot))
+    pass
+    #bot.add_cog(Logs(bot))
