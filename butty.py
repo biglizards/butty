@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sqlite3
 import logging
 import os
@@ -8,10 +8,10 @@ import discord
 from discord.ext import commands
 import cogs.prefix
 
-prefix = cogs.prefix.Prefix()
-
 real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 os.chdir(real_path)
+
+prefix = cogs.prefix.Prefix()
 
 database = sqlite3.connect("cogs/buttybot.db")
 c = database.cursor()
@@ -21,9 +21,10 @@ c.execute('''CREATE TABLE IF NOT EXISTS prefixes
 
 description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
+bot.voice_reload_cache = None
 
 # add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
-startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.logs"]
+startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc"]
 
 
 logger = logging.getLogger('discord')
@@ -34,11 +35,19 @@ handler = logging.FileHandler(filename='extras/metalogs/discord.log', encoding='
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+
 @bot.event
 async def on_command_error(exception, context):
+    if type(exception) == discord.ext.commands.errors.CommandNotFound:
+        return
+
     message = context.message
     tb = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))
-    await bot.send_message(discord.Object('259634295256121345'), "COMMAND **{}** IN **{}** ({}) \n```Python\n{}```".format(message.content, message.server.name, message.server.id, tb))
+
+    reply =  "COMMAND **{}** IN **{}** ({})".format(message.content, message.server.name, message.server.id)
+    reply += "\n```py\n{}```".format(tb[len(reply)-1988:])
+    await bot.send_message(discord.Object('259634295256121345'), reply)
+
 
 @bot.event
 async def on_ready():
@@ -54,16 +63,25 @@ async def on_ready():
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))
 
+
 @bot.event
 async def on_message(message):
     if message.server and message.server.id == '204621105720328193' and ('nsfw' in message.content or 'NSFW' in message.content):
         await bot.send_message(message.channel, "(not safe for women)")
-    
+
     await bot.process_commands(message)
-    
+
     if message.content.startswith('['):
         await bot.send_message(discord.Object('237608005166825474'), "**{}** ({})\n**{}** ({})\n{}".format(message.server.name, message.server.id, message.author.name, message.author.id, message.content))
-        
+
+
+@bot.command(name="reload", hidden=True, pass_context=True)
+async def reload_module(ctx, module):
+    if ctx.message.author.id == '135483608491229184' or ctx.message.author.id == '135496683009081345':
+        bot.unload_extension(module)
+        bot.load_extension(module)
+        await bot.say("done")
+
 try:
     with open("extras/token", 'r') as Token:
         token = Token.read()
