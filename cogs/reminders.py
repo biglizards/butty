@@ -3,23 +3,34 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import parsedatetime.parsedatetime
 from pytz import timezone
+import time
 import sqlite3
 import asyncio
 
 
 async def reminder_loop(self):
     while not self.bot.is_closed:
-        now = str(datetime.now(timezone('UTC')))[:-16]
-        alerts = self.cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
-        users = self.cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
-        channels = self.cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
-        if len(alerts) != 0:
+        # now = str(datetime.now(timezone('UTC')))[:-16]
+        # alerts = self.cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
+        # users = self.cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
+        # channels = self.cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
+        # if len(alerts) != 0:
+        #     for x in range(0, len(alerts)):
+        #         channel = self.bot.get_channel(channels[x][0])
+        #         await self.bot.send_message(channel, "<@" + users[x][0] + ">" + alerts[x][0])
+        #         self.cursor.execute("DELETE FROM alert WHERE time=?", (now,))
+        #         self.database.commit()
+        now = datetime.now(timezone('UTC'))
+        now = format(now, '%Y-%m-%d %H:%M:%S')
+        alerts = self.cursor.execute("SELECT * FROM alert WHERE time < ?", (now,)).fetchall()
+        if alerts:
+            print("hey it's true")
             for x in range(0, len(alerts)):
-                channel = self.bot.get_channel(channels[x][0])
-                await self.bot.send_message(channel, "<@" + users[x][0] + ">" + alerts[x][0])
-                self.cursor.execute("DELETE FROM alert WHERE time=?", (now,))
-                self.database.commit()
-        await asyncio.sleep(5)
+                print("thing number " + str(x))
+                await self.bot.send_message(self.bot.get_channel(alerts[x][1]), "<@{}> {}".format(alerts[x][0], alerts[x][3]))
+            self.cursor.execute("DELETE FROM alert WHERE time < ?", (now,))
+            self.database.commit()
+        asyncio.sleep(5)
 
 
 class Reminders:
@@ -50,33 +61,12 @@ class Reminders:
         message = " ".join(context.message.content.split(" ")[2:])
         msg = message.split(",", 1)
         cal = parsedatetime.Calendar()
-        time = datetime.now(timezone('UTC'))
-        currenttime = cal.parse(str(time))[0]
-        newtime = cal.parse(msg[0], currenttime)[0]
-        print(newtime)
-        list = []
         alertid = len(self.cursor.execute("SELECT * FROM alert WHERE user=?", (context.message.author.id,)).fetchall()) + 1
-        for x in range(0, len(currenttime)):
-            if newtime[x] - currenttime[x] == 0:
-                list.append(0)
-            else:
-                list.append(newtime[x] - currenttime[x])
-        for x in range(0, len(list)):
-            if x == 0:
-                time += relativedelta(years=list[x])
-            if x == 1:
-                time += relativedelta(months=list[x])
-            if x == 2:
-                time += relativedelta(days=list[x])
-            if x == 3:
-                time += relativedelta(hours=list[x])
-            if x == 4:
-                time += relativedelta(minutes=list[x])
-        time = str(time)[:-16]
-        print(time)
-        self.cursor.execute("INSERT INTO alert VALUES(?, ?, ?, ?, ?, ?)", (context.message.author.id, context.message.channel.id, time, msg[1], "no", alertid))
+        dontusemodulesasvariablenames = cal.parse(msg[0], datetime.now(timezone('UTC')))
+        alert_time = time.strftime('%Y-%m-%d %H:%M:%S', dontusemodulesasvariablenames[0])
+        self.cursor.execute("INSERT INTO alert VALUES(?, ?, ?, ?, ?, ?)", (context.message.author.id, context.message.channel.id, alert_time, msg[1], "no", alertid))
         self.database.commit()
-        await self.bot.say("Reminder set for " +  time + " UTC")
+        await self.bot.say("Reminder set for " +  alert_time + " UTC")
 
     @reminder.command(aliases=['d', 'r'],pass_context=True)
     async def delete(self, context):
