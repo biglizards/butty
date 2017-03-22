@@ -1,13 +1,14 @@
 import sqlite3
 import os
 
-real_path = os.path.dirname(os.path.realpath(__file__)) + "/"
-os.chdir(real_path)
-
-
 class Prefix:
     def __init__(self):
         self.prefixes = {}
+        self.database = sqlite3.connect("cogs/buttybot.db")
+        self.c = self.database.cursor()
+
+        self.c.execute('''CREATE TABLE IF NOT EXISTS prefixes
+                          (id text, prefix text)''')
 
     def get_prefix(self, bot, message, check_db=True):
         if not message.server:
@@ -18,7 +19,7 @@ class Prefix:
             return '{0.user.mention} '.format(bot) # because sometimes a memtion has an ! in it for no reason
 
         if check_db:
-            prefix = c.execute("SELECT prefix FROM prefixes WHERE id=?", (message.server.id,)).fetchone()
+            prefix = self.c.execute("SELECT prefix FROM prefixes WHERE id=?", (message.server.id,)).fetchone()
         else:
             prefix = self.prefixes.get(message.server.id)
 
@@ -28,9 +29,3 @@ class Prefix:
             self.prefixes[message.server.id] = prefix[0]
 
         return prefix[0]
-
-database = sqlite3.connect("buttybot.db")
-c = database.cursor()
-
-c.execute('''CREATE TABLE IF NOT EXISTS prefixes
-             (id text, prefix text)''')
