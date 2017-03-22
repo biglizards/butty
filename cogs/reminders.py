@@ -73,6 +73,7 @@ class Reminders:
             if x == 4:
                 time += relativedelta(minutes=list[x])
         time = str(time)[:-16]
+        print(time)
         self.cursor.execute("INSERT INTO alert VALUES(?, ?, ?, ?, ?, ?)", (context.message.author.id, context.message.channel.id, time, msg[1], "no", alertid))
         self.database.commit()
         await self.bot.say("Reminder set for " +  time + " UTC")
