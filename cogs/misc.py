@@ -2,6 +2,9 @@ import asyncio
 import random
 import urllib
 import os
+import sys
+from io import StringIO
+import inspect
 
 import discord
 from discord.ext import commands
@@ -50,7 +53,7 @@ class Misc:
 
     @commands.command(name="oinvite", hidden=True, pass_context=True)
     async def misc_other_invite(self, ctx, name):
-        if ctx.message.author.id != '135483608491229184':
+        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345':
             return
         for server in self.bot.servers:
             if server.name == name:
@@ -58,19 +61,12 @@ class Misc:
                 await self.bot.say(await self.bot.create_invite(server))
 
 
-    @commands.command(name="reload", hidden=True)
-    async def misc_reload_module(self, module):
-       self.bot.unload_extension(module)
-       self.bot.load_extension(module)
-       await self.bot.say("done")
-
-
     @commands.command(name="invite")
     async def misc_invite(self):
         """Show's Butty's invite link
 
          Just in case you want to add it to your server"""
-        await self.bot.say("https://harru.club/invite")
+        await self.bot.say("https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions=3271713")
     
 
     @commands.command(name="clean", aliases=['purge'], pass_context=True)
@@ -114,7 +110,7 @@ class Misc:
             await self.bot.say(diceno)
         else:
             await self.bot.say("The side limit is 100000000000 and the dice limit is 10")
-    
+
     @commands.command(name="say")
     async def misc_say(self, *message):
         await self.bot.say(' '.join(message))
@@ -136,8 +132,80 @@ class Misc:
     @commands.command(name="presence", aliases=["statuschange"], pass_context=True, hidden=True)
     async def misc_statuschange(self, ctx, *newgame : str):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
-            await self.bot.change_presence(game=discord.Game(name=newgame))
+            await self.bot.change_presence(game=discord.Game(name=' '.join(newgame)))
             print("yay")
+
+    @commands.command(name="vdbug", pass_context=True, hidden=True)
+    async def voice_debug(self, ctx):
+        """Stop letting people use commands they shouldn't you bastard"""
+        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345': return
+
+        await self.bot.say("```Python\n" + ctx.message.content[7:] + "```")
+        code = ctx.message.content[7:].strip("`")
+        codeobj = compile(code, '', 'exec')
+
+        buffer = StringIO()
+        sys.stdout = buffer
+
+        exec(codeobj, globals(), locals())
+
+        sys.stdout = sys.__stdout__
+
+        await self.bot.say(buffer.getvalue())
+
+    @commands.command(pass_context=True, hidden=True)
+    async def debug(self, ctx, *, code : str):
+        """Evaluates code."""
+        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345': return
+
+        code = code.strip('` ')
+        python = '```py\n{}\n```'
+        result = None
+
+        env = {
+            'bot': self.bot,
+            'ctx': ctx,
+            'message': ctx.message,
+            'server': ctx.message.server,
+            'channel': ctx.message.channel,
+            'author': ctx.message.author
+        }
+
+        env.update(globals())
+        env.update(locals())
+
+        try:
+            result = eval(code, env)
+            if inspect.isawaitable(result):
+                result = await result
+        except Exception as e:
+            await self.bot.say(python.format(type(e).__name__ + ': ' + str(e)))
+            return
+
+        await self.bot.say(python.format(result))
+
+    @commands.command(name="gitpull", pass_context=True, hidden=True)
+    async def misc_gitpull(self, ctx):
+        if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
+            os.system("git pull")
+            await self.bot.say("done")
+
+    @commands.command(name="reload2", hidden=True, pass_context=True)
+    async def reload_module2(self, ctx, module):
+        if ctx.message.author.id == '135483608491229184' or ctx.message.author.id == '135496683009081345':
+            self.bot.unload_extension(module)
+            self.bot.load_extension(module)
+            await self.bot.say("done")
+    
+    @commands.command(name="invites", hidden=True, pass_context=True)
+    async def invites(self, ctx):
+        invs = await self.bot.invites_from(ctx.message.server)
+        t = 0
+        for x in invs:
+            if x.inviter == ctx.message.author:
+                t += x.uses
+        await self.bot.say("{} has {} invites".format(ctx.message.author.name, t))
+
 
 
 def setup(bot):
