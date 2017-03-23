@@ -10,27 +10,15 @@ import asyncio
 
 async def reminder_loop(self):
     while not self.bot.is_closed:
-        # now = str(datetime.now(timezone('UTC')))[:-16]
-        # alerts = self.cursor.execute("SELECT message FROM alert WHERE time=?", (now,)).fetchall()
-        # users = self.cursor.execute("SELECT user FROM alert WHERE time=?", (now,)).fetchall()
-        # channels = self.cursor.execute("SELECT channel FROM alert WHERE time=?", (now,)).fetchall()
-        # if len(alerts) != 0:
-        #     for x in range(0, len(alerts)):
-        #         channel = self.bot.get_channel(channels[x][0])
-        #         await self.bot.send_message(channel, "<@" + users[x][0] + ">" + alerts[x][0])
-        #         self.cursor.execute("DELETE FROM alert WHERE time=?", (now,))
-        #         self.database.commit()
         now = datetime.now(timezone('UTC'))
         now = format(now, '%Y-%m-%d %H:%M:%S')
         alerts = self.cursor.execute("SELECT * FROM alert WHERE time < ?", (now,)).fetchall()
-        if alerts:
-            print("hey it's true")
+        if len(alerts) != 0:
             for x in range(0, len(alerts)):
-                print("thing number " + str(x))
                 await self.bot.send_message(self.bot.get_channel(alerts[x][1]), "<@{}> {}".format(alerts[x][0], alerts[x][3]))
             self.cursor.execute("DELETE FROM alert WHERE time < ?", (now,))
             self.database.commit()
-        asyncio.sleep(5)
+        await asyncio.sleep(5)
 
 
 class Reminders:
