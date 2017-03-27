@@ -1,4 +1,5 @@
 from discord.ext import commands
+import discord
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import parsedatetime.parsedatetime
@@ -8,20 +9,8 @@ import sqlite3
 import asyncio
 
 
-async def reminder_loop(self):
-    while not self.bot.is_closed:
-        now = datetime.now(timezone('UTC'))
-        now = format(now, '%Y-%m-%d %H:%M:%S')
-        alerts = self.cursor.execute("SELECT * FROM alert WHERE time < ?", (now,)).fetchall()
-        if len(alerts) != 0:
-            for x in range(0, len(alerts)):
-                await self.bot.send_message(self.bot.get_channel(alerts[x][1]), "<@{}> {}".format(alerts[x][0], alerts[x][3]))
-            self.cursor.execute("DELETE FROM alert WHERE time < ?", (now,))
-            self.database.commit()
-        await asyncio.sleep(5)
-
-
 class Reminders:
+
 
     def __init__(self, bot):
         self.bot = bot
@@ -29,7 +18,23 @@ class Reminders:
         self.cursor = self.database.cursor()
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS alert
                           (user, channel, time, message, repeat, id)''')
-        self.loop = self.bot.loop.create_task(reminder_loop(self))
+        self.loop = self.bot.loop.create_task(self.reminder_loop())
+
+    async def reminder_loop(self):
+        while not self.bot.is_closed:
+            now = datetime.now(timezone('UTC'))
+            now = format(now, '%Y-%m-%d %H:%M:%S')
+            alerts = self.cursor.execute("SELECT user, channel, message FROM alert WHERE time < ?", (now,)).fetchall()
+
+            for user_id, channel, message in alerts:
+                try:
+                    await self.bot.send_message(discord.Object(channel), "<@{}> {}".format(user_id, message))
+                except:
+                    pass
+
+            self.cursor.execute("DELETE FROM alert WHERE time < ?", (now,))
+            self.database.commit()
+            await asyncio.sleep(5)
 
     @commands.group(aliases=['r'], brief='do "help r" for more detail')
     async def reminder(self):
