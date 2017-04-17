@@ -133,7 +133,7 @@ class Ascii:
                 await self.bot.say("Welp, those dimensions were too big. Here it is in an image format.")
                 await self.bot.send_file(ctx.message.channel, newfilename)
                 await self.bot.send_file(ctx.message.channel, othernewfilename)
-                os.system("del {} && del {}".format(newfilename, othernewfilename))
+            os.system("del {} && del {}".format(newfilename, othernewfilename))
 
 def setup(bot):
     bot.add_cog(Ascii(bot))
