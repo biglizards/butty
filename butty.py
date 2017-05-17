@@ -3,6 +3,7 @@ import sqlite3
 import logging
 import os
 import traceback
+import time
 
 import discord
 from discord.ext import commands
@@ -22,6 +23,8 @@ c.execute('''CREATE TABLE IF NOT EXISTS prefixes
 description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 bot.voice_reload_cache = None
+bot.remove_command("help")
+bot.startup_time = time.time()
 
 # add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
 startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.ascii"]
