@@ -270,6 +270,10 @@ class Voice:
         if not voice:
             await self.bot.say("Can't change the volume of nothing (use [play)")
             return
+
+        if voice.current_song.user != context.message.author and not misc.is_admin(context) and volume < 20:
+            await self.bot.say("You can't change the volume rn, it's not your song")
+            return
         voice.volume = volume / 100
         voice.player.volume = volume / 100
 
