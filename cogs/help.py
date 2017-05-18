@@ -4,8 +4,8 @@ import time
 import discord
 from discord.ext import commands
 
-
 class Helping:
+
     def __init__(self, bot_, show_hidden=False, show_check_failure=False):
         self.bot = bot_
         self.show_hidden = show_hidden
@@ -16,7 +16,7 @@ class Helping:
         categories = {}
 
         for name, command in self.bot.commands.items():
-            if name in command.aliases:
+            if name in command.aliases or command.hidden:
                 continue
             cog_name = command.cog_name if command.cog_name is not None else "No Category"
             if cog_name not in categories.keys():
@@ -30,28 +30,37 @@ class Helping:
         """bool : Specifies if the command has subcommands."""
         return isinstance(command, commands.GroupMixin)
 
-    def help_for(self, categories, command_or_cog):
+    def format_commands(self, ctx, command):
+        return "**{}{}** {}\n\n".format(self.bot.command_prefix(self.bot, ctx.message),
+                                        command.name,
+                                        ' '.join("<{}>".format(x) for x in command.params if
+                                                 x is not "self" and x is not "ctx" and x is not "context"))
+    def format_desc(self, command):
+        return "{}\n\n".format(command.short_doc if command.short_doc is not None else "")
+
+
+    def help_for(self, context, categories, command_or_cog):
 
         com_str = ""
+        desc_str = ""
         why_is_this_a_list = []
+
+
 
         for x in command_or_cog:
             why_is_this_a_list.append(x.capitalize())
         cog_ = ' '.join(why_is_this_a_list)
 
         if cog_ in categories.keys():
-            response = discord.Embed(title="Help for {}".format(cog_),
+            response = discord.Embed(title="ᅠᅠ",
                                      colour=discord.Colour.purple())
 
             for command in categories[cog_]:
 
                 if not self.has_subcommands(command):
 
-                    com_str += "{}{} {}  -  {}".format(self.bot.command_prefix,
-                                                       command.name,
-                                                       ' '.join("<{}>".format(x) for x in command.params if
-                                                                x is not "self" and x is not "ctx" and x is not "context"),
-                                                       command.short_doc if command.short_doc is not None else "")
+                    com_str += self.format_commands(context, command)
+                    desc_str += self.format_desc(command)
 
                 else:
                     for name, subcommand in command.commands.items():
@@ -59,20 +68,15 @@ class Helping:
                         if name in subcommand.aliases:
                             continue
 
-                        com_str += "{}{} {} {}  -  {}\n".format(self.bot.command_prefix,
-                                                                command.name,
-                                                                subcommand.name,
-                                                                ' '.join("<{}>".format(x) for x in subcommand.params if
-                                                                         x is not "self" and x is not "ctx" and x is not "context"),
-                                                                subcommand.short_doc if subcommand.short_doc is not None else "No Description")
+                        com_str += self.format_commands(context, subcommand)
+                        desc_str += self.format_desc(command)
 
-            response.add_field(name=cog_, value=com_str)
+            response.add_field(name="Help for {}".format(cog_), value=com_str)
+            response.add_field(name="Descriptions", value=desc_str)
 
             return response
 
         elif cog_.lower() in self.bot.commands.keys():
-
-            print("thinks its a command")
 
             command = self.bot.commands[cog_.lower()]
 
@@ -89,25 +93,21 @@ class Helping:
                     if name in subcommand.aliases:
                         continue
 
-                    com_str += "{}{} {} {}  -  {}\n".format(self.bot.command_prefix,
-                                                            command.name,
-                                                            subcommand.name,
-                                                            ' '.join("<{}>".format(x) for x in subcommand.params if
-                                                                     x is not "self" and x is not "ctx"),
-                                                            "{}".format(
-                                                                subcommand.short_doc) if subcommand.short_doc is not None else "No Description")
+                    com_str += self.format_commands(context, subcommand)
+                    desc_str += self.format_desc(command)
 
                     aliases = " | ".join(subcommand.aliases)
                     alias_str += "[{}]\n".format(aliases) if aliases is not None else "\n"
 
                 response.add_field(name="Subcommands", value=com_str)
+                response.add_field(name="Descriptions", value=desc_str)
                 response.add_field(name="Aliases", value=alias_str, inline=False)
 
                 return response
 
             else:
 
-                response = discord.Embed(title="{}{} {}".format(self.bot.command_prefix,
+                response = discord.Embed(title="{}{} {}".format(self.bot.command_prefix(self.bot, context.message),
                                                                 command.name,
                                                                 ' '.join("<{}>".format(x) for x in command.params if
                                                                          x is not "self" and x is not "ctx" and x is not "context")),
@@ -137,7 +137,8 @@ class Helping:
 
             for cog_name, emoji in zip(categories.keys(), reaction_list):
                 print(cog_name)
-                response_embeds[emoji] = self.help_for(categories,
+                response_embeds[emoji] = self.help_for(ctx,
+                                                       categories,
                                                        tuple(item for item in cog_name.split(' ') if item.strip()))
                 print(len(response_embeds))
                 main_str += "{} - {}\n\n".format(emoji, cog_name)
@@ -175,7 +176,6 @@ class Helping:
 
             response_embeds['🏘'] = parent_embed
 
-            await self.bot.add_reaction(msg, reaction_list[10])
             await self.bot.add_reaction(msg, reaction_list[9])
 
             await asyncio.sleep(2)
@@ -183,14 +183,23 @@ class Helping:
             reac_loop = True
 
             while reac_loop:
-                for x in msg.reactions:
-                    print(x.emoji)
                 reac = await self.bot.wait_for_reaction(reaction_list, message=msg, timeout=60.0)
                 print("looping")
                 if reac:
 
                     if reac[0].emoji != reaction_list[9]:
                         await self.bot.edit_message(msg, embed=response_embeds[reac[0].emoji])
+                        if response_embeds[reac[0].emoji] != response_embeds['🏘']:
+                            await self.bot.clear_reactions(msg)
+                            await self.bot.add_reaction(msg, reaction_list[10])
+                            await self.bot.add_reaction(msg, reaction_list[9])
+                            await asyncio.sleep(2)
+                        else:
+                            await self.bot.clear_reactions(msg)
+                            for x in range(len(response_embeds.keys()) - 1):
+                                await self.bot.add_reaction(msg, reaction_list[x])
+                            await self.bot.add_reaction(msg, reaction_list[9])
+                            await asyncio.sleep(2)
 
                     elif reac[0].emoji == reaction_list[9]:
                         await self.bot.delete_message(ctx.message)
@@ -205,7 +214,7 @@ class Helping:
 
         elif command_or_category:
 
-            response_embed = self.help_for(categories, command_or_category)
+            response_embed = self.help_for(ctx, categories, command_or_category)
             msg = await self.bot.say(embed=response_embed)
 
             await self.bot.add_reaction(msg, reaction_list[9])

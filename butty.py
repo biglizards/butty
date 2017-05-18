@@ -26,8 +26,8 @@ bot.voice_reload_cache = None
 bot.remove_command("help")
 bot.startup_time = time.time()
 
-# add cogs here after putting them in cogs folder (format cogs.<name of file without extension>)
-startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.ascii"]
+# add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
+startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.ascii", "cogs.help"]
 
 
 logger = logging.getLogger('discord')
