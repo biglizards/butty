@@ -69,9 +69,6 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    if message.server and message.server.id == '204621105720328193' and ('nsfw' in message.content or 'NSFW' in message.content):
-        await bot.send_message(message.channel, "(not safe for women)")
-
     await bot.process_commands(message)
 
     if message.content.startswith('['):
