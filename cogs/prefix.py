@@ -1,5 +1,5 @@
 import sqlite3
-import os
+
 
 class Prefix:
     def __init__(self):
@@ -9,16 +9,22 @@ class Prefix:
         self.c.execute('''CREATE TABLE IF NOT EXISTS prefixes
                           (id text, prefix text)''')
         self.prefixes = {}
-        for thing in self.c.execute("SELECT * FROM prefixes").fetchall():
-            self.prefixes[thing[0]] = thing[1]
+        for server, prefix in self.c.execute("SELECT * FROM prefixes").fetchall():
+            self.prefixes[server] = prefix
 
     def get_prefix(self, bot, message, check_db=False):
+
+        # if it's a pm: return '['
+        # if '@butty ' is at the start of the message, return '@butty ' (note the space)
+        # else get prefix from db (or cache)
+
         if not message.server:
             return '['
-        if '{0.me.mention} '.format(message.server) in message.content:
+
+        if message.content.startswith('{} '.format(message.server.me.mention)):
             return '{0.me.mention} '.format(message.server)
-        elif '{0.user.mention} '.format(bot) in message.content:
-            return '{0.user.mention} '.format(bot) # because sometimes a mention has an ! in it for no reason
+        elif message.content.startswith('{} '.format(bot.user.mention)):
+            return '{0.user.mention} '.format(bot)  # because sometimes a mention has an ! in it for no reason
 
         if check_db:
             prefix = self.c.execute("SELECT prefix FROM prefixes WHERE id=?", (message.server.id,)).fetchone()
