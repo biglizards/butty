@@ -1,4 +1,3 @@
-import asyncio
 import random
 import urllib
 import os
@@ -105,15 +104,18 @@ class Misc:
         else:
             await self.bot.say("The side limit is 100000000000 and the dice limit is 10")
 
-    @commands.command(name="say")
-    async def misc_say(self, *message):
-        await self.bot.say(' '.join(message))
+    @commands.command(name="say", pass_context=True)
+    async def misc_say(self, ctx, *message):
+        if is_admin(ctx):
+            await self.bot.say(' '.join(message))
+        else:
+            await self.bot.say('{} said: {}'.format(ctx.message.author.mention, ' '.join(message)))
 
     @commands.command(name="duck")
     async def misc_duck(self, *message):
         """<query>  -  makes a lmddgtfy link for your <query>
 
-        lmddgtfy == Let Me Duck Duck Go That For You"""
+        lmddgtfy = Let Me Duck Duck Go That For You"""
         query = urllib.parse.quote(' '.join(message))
         await self.bot.say("http://lmddgtfy.net/?q=" + query)
 
