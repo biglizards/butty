@@ -5,4 +5,4 @@ extras/*
 */badwords
 *.db
 *.backup
-
+*secret*
