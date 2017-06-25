@@ -20,18 +20,15 @@ def is_admin(context):
 
 class Misc:
 
-
     def __init__(self, bot_):
         self.bot = bot_
         self.prefix = prefix.Prefix()
-
 
     def should_remove(self, m):
         prefix_ = self.prefix.get_prefix(self.bot, m, False)
         if m.content.startswith(prefix_) or m.author.id == "229223616217088001":
             return True
         return False
-
 
     @commands.command(name="stats", hidden=True)
     async def misc_stats(self):
@@ -60,14 +57,13 @@ class Misc:
                 await self.bot.say(len(server.members))
                 await self.bot.say(await self.bot.create_invite(server))
 
-
     @commands.command(name="invite")
     async def misc_invite(self):
         """Show's Butty's invite link
 
          Just in case you want to add it to your server"""
-        await self.bot.say("https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions=3271713")
-    
+        await self.bot.say("https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions="
+                           "3271713")
 
     @commands.command(name="clean", aliases=['purge'], pass_context=True)
     async def misc_clean(self, context, number: int = 0):
@@ -87,7 +83,6 @@ class Misc:
 
         await self.bot.purge_from(context.message.channel, limit=number, check=self.should_remove)
 
-
     @commands.command(name="flip")
     async def misc_flip(self):
         """Flip a coin
@@ -96,9 +91,8 @@ class Misc:
         (as long as there's only two things to choose from)"""
         await self.bot.say("\\*flips coin* ... {}!".format(random.choice(['Heads', 'Tails'])))
 
-
     @commands.command(name="roll")
-    async def misc_roll(self, number_of_dice : int, number_of_sides : int):
+    async def misc_roll(self, number_of_dice: int, number_of_sides: int):
         """<x> <y>  -  where x and y are integers, rolls x dice with y sides
 
         Rolls some dice, for when just two choices aren't enough"""
@@ -123,14 +117,13 @@ class Misc:
         query = urllib.parse.quote(' '.join(message))
         await self.bot.say("http://lmddgtfy.net/?q=" + query)
 
-
     @commands.command(name="restart", aliases=["getout"], pass_context=True, hidden=True)
     async def misc_restart(self, ctx):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             os.system("git pull && systemctl restart butty")
 
     @commands.command(name="presence", aliases=["statuschange"], pass_context=True, hidden=True)
-    async def misc_statuschange(self, ctx, *newgame : str):
+    async def misc_statuschange(self, ctx, *newgame: str):
         if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
             await self.bot.change_presence(game=discord.Game(name=' '.join(newgame)))
             print("yay")
@@ -138,7 +131,8 @@ class Misc:
     @commands.command(name="vdbug", pass_context=True, hidden=True)
     async def voice_debug(self, ctx):
         """Stop letting people use commands they shouldn't you bastard"""
-        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345': return
+        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345':
+            return
 
         await self.bot.say("```Python\n" + ctx.message.content[7:] + "```")
         code = ctx.message.content[7:].strip("`")
@@ -154,9 +148,10 @@ class Misc:
         await self.bot.say(buffer.getvalue())
 
     @commands.command(pass_context=True, hidden=True)
-    async def debug(self, ctx, *, code : str):
+    async def debug(self, ctx, *, code: str):
         """Evaluates code."""
-        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345': return
+        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345':
+            return
 
         code = code.strip('` ')
         python = '```py\n{}\n```'
@@ -205,7 +200,6 @@ class Misc:
             if x.inviter == ctx.message.author:
                 t += x.uses
         await self.bot.say("{} has {} invites".format(ctx.message.author.name, t))
-
 
 
 def setup(bot):
