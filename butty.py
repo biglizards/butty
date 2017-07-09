@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
-import traceback
 import time
+import traceback
 from collections import defaultdict
 from functools import wraps
 
 import discord
 from discord.ext import commands
-import cogs.prefix
 
-# setup for "secret" (server specific) stuff
+import cogs.prefix
+from cogs.misc import is_owner
+
+
+# note that isinstance(ctx.guild.me, discord.user.User) == False
+# i don't know why you would care about that
+
+# setup for "secret" (guild specific) stuff
 
 
 def event(self, coro):
@@ -34,30 +40,47 @@ prefix = cogs.prefix.Prefix()
 description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 
+bot.loop
+
 bot.voice_reload_cache = None
 bot.startup_time = time.time()
 bot.secrets = defaultdict(list)
 
-bot.remove_command("help")  # TODO: wtf harru why is this here
+# bot.remove_command("help")  # TODO: wtf harru why is this here
 
 # add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
-startup_extensions = ["cogs.reminders", "cogs.voice", "cogs.misc", "cogs.ascii", "cogs.help", "cogs.secret"]
+startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret"]
 # TODO: remove cogs.secret from startup?
 # I don't want any differences between git and live version
-# i guess just don't sync secret.py?
+
+
+def get_traceback_from_exception(exception, message):
+    tb = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))  # what even
+
+    if message.guild:
+        location = "**{0.name}** ({0.id})".format(message.guild)
+    else:
+        location = "DM"
+
+    header = "COMMAND **{}** IN {}\n".format(message.content, location)
+    error = "```py\n{}```".format(tb[len(header)-1988:])
+    return header + error
 
 
 @bot.event
-async def on_command_error(exception, context):
+async def on_command_error(context, exception):
+    print("oh no an error")
     if type(exception) == discord.ext.commands.errors.CommandNotFound:
         return
 
-    message = context.message
-    tb = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+    if type(exception) == discord.ext.commands.errors.CheckFailure:
+        await context.send("Sorry, this command is admin only. Try asking someone with manage server perms")
+        return
 
-    reply = "COMMAND **{}** IN **{}** ({})".format(message.content, message.server.name, message.server.id)
-    reply += "\n```py\n{}```".format(tb[len(reply)-1988:])
-    await bot.send_message(discord.Object('259634295256121345'), reply)
+    tb = get_traceback_from_exception(exception, context.message)
+    channel = discord.utils.get(bot.get_all_channels(), id=332200389074223105)  # TODO change back to old error channel
+
+    await channel.send(tb)
 
 
 @bot.event
@@ -67,28 +90,23 @@ async def on_ready():
     print(bot.user.id)
     print('------')
 
-    await bot.change_presence(game=discord.Game(name='"[help" for help'))
+    await bot.change_presence(game=discord.Game(name='help why is test butty still up'))
 
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))
-
-
-@bot.event
-async def on_message(message):
-    await bot.process_commands(message)
+            print('Failed to load extension {}\n  {}'.format(extension, exc))
 
 
 # defined here so it can't be accidentally unloaded
-@bot.command(name="reload", hidden=True, pass_context=True)
-async def reload_module(ctx, module):
-    if ctx.message.author.id == '135483608491229184' or ctx.message.author.id == '135496683009081345':
-        bot.unload_extension(module)
-        bot.load_extension(module)
-        await bot.say("done")
+@commands.check(is_owner)
+@bot.command(name="reload", hidden=True)
+async def reload_cog(ctx, cog):
+    bot.unload_extension(cog)
+    bot.load_extension(cog)
+    await ctx.send("done")
 
 try:
     with open("extras/token", 'r') as Token:
