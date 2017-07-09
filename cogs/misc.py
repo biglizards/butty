@@ -1,9 +1,9 @@
-import random
-import urllib
-import os
-import sys
-from io import StringIO
 import inspect
+import os
+import random
+import sys
+import urllib
+from io import StringIO
 
 import discord
 from discord.ext import commands
@@ -11,87 +11,80 @@ from discord.ext import commands
 import cogs.prefix as prefix
 
 
-def is_admin(context):
-    if context.message.author.id == "135496683009081345" or context.message.author.id == '135483608491229184':
+def is_owner(ctx):
+    return ctx.message.author.id in [135496683009081345, 135483608491229184]
+
+
+def is_admin(ctx):
+    if is_owner(ctx):
         return True
-    return context.message.author.server_permissions.manage_server
+    return ctx.message.author.guild_permissions.manage_guild
 
 
 class Misc:
-
     def __init__(self, bot_):
         self.bot = bot_
         self.prefix = prefix.Prefix()
 
-    def should_remove(self, m):
-        prefix_ = self.prefix.get_prefix(self.bot, m, False)
-        if m.content.startswith(prefix_) or m.author.id == "229223616217088001":
+    def should_remove(self, message):
+        prefix_ = self.prefix.get_prefix(self.bot, message, False)
+        if message.content.startswith(prefix_) or message.author == self.bot.user:
             return True
         return False
 
     @commands.command(name="stats", hidden=True)
-    async def misc_stats(self):
-        """Shows how many servers butty's in, and how many people are in those servers"""
+    async def misc_stats(self, ctx):
+        """Shows how many guilds butty's in, and how many people are in those guilds"""
         total = 0
-        for server in self.bot.servers:
-            total += len(server.members)
-        await self.bot.say("I am currently being a sandwich in {} servers, feeding {} users".format(
-            len(self.bot.servers), total)
-        )
+        for guild in self.bot.guilds:
+            total += len(guild.members)
+        await ctx.send("I am currently being a sandwich in {} guilds, feeding {} users".format(
+            len(self.bot.guilds), total))
 
-    @commands.command(name="stats_secret", hidden=True)
-    async def misc_stats_secret(self):
-        server_list = []
-        for server in self.bot.servers:
-            server_list.append(server.name)
-        server_list.sort()
-        await self.bot.say('\n'.join(server_list))
-
-    @commands.command(name="oinvite", hidden=True, pass_context=True)
+    @commands.check(is_owner)
+    @commands.command(name="oinvite", hidden=True)
     async def misc_other_invite(self, ctx, name):
-        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345':
+        guild = discord.utils.get(self.bot.guilds, name=name)
+        if not guild:
             return
-        for server in self.bot.servers:
-            if server.name == name:
-                await self.bot.say(len(server.members))
-                await self.bot.say(await self.bot.create_invite(server))
+        await ctx.send(len(guild.members))
+        await ctx.send(await guild.create_invite())
 
     @commands.command(name="invite")
-    async def misc_invite(self):
+    async def misc_invite(self, ctx):
         """Show's Butty's invite link
 
-         Just in case you want to add it to your server"""
-        await self.bot.say("https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions="
-                           "3271713")
+         Just in case you want to add it to your guild"""
+        await ctx.send("https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions="
+                       "3271713")
 
-    @commands.command(name="clean", aliases=['purge'], pass_context=True)
-    async def misc_clean(self, context, number: int = 0):
+    @commands.check(is_admin)
+    @commands.command(name="clean", aliases=['purge'])
+    async def misc_clean(self, ctx, number: int = 0):
         """<limit>  -  removes butty's commands and spam
 
         Removes any messages sent by butty, as well as any
         messages starting with butty's command prefix. 200 message limit"""
-        if not is_admin(context):
-            await self.bot.say("Sorry, only server admins can use this command")
-            return None
-        elif not number:
-            await self.bot.say("You need to set a limit, I can't just remove everything")
+        if number == 0:
+            await ctx.send("You need to set a limit, I can't just remove everything")
             return None
         elif number > 200:
-            await self.bot.say("That's too many, calm down")
+            await ctx.send("That's too many, calm down")
             return None
 
-        await self.bot.purge_from(context.message.channel, limit=number, check=self.should_remove)
+        await ctx.channel.purge(limit=number, check=self.should_remove)
 
     @commands.command(name="flip")
-    async def misc_flip(self):
+    async def misc_flip(self, ctx):
         """Flip a coin
 
         For, you know, picking something randomly
         (as long as there's only two things to choose from)"""
-        await self.bot.say("\\*flips coin* ... {}!".format(random.choice(['Heads', 'Tails'])))
+
+        await ctx.send("\\*flips coin* ... {}!".format(random.choice(['Heads', 'Tails'])))
 
     @commands.command(name="roll")
-    async def misc_roll(self, number_of_dice: int, number_of_sides: int):
+    async def misc_roll(self, ctx, number_of_dice: int, number_of_sides: int):
         """<x> <y>  -  where x and y are integers, rolls x dice with y sides
 
         Rolls some dice, for when just two choices aren't enough"""
@@ -100,43 +93,41 @@ class Misc:
             print("yay")
             for x in range(0, number_of_dice):
                 diceno += "For dice " + str(x + 1) + " you rolled: " + str(random.randint(1, number_of_sides)) + "\n"
-            await self.bot.say(diceno)
+            await ctx.send(diceno)
         else:
-            await self.bot.say("The side limit is 100000000000 and the dice limit is 10")
+            await ctx.send("The side limit is 100000000000 and the dice limit is 10")
 
-    @commands.command(name="say", pass_context=True)
+    @commands.command(name="say")
     async def misc_say(self, ctx, *message):
         if is_admin(ctx):
-            await self.bot.say(' '.join(message))
+            await ctx.send(' '.join(message))
         else:
-            await self.bot.say('{} said: {}'.format(ctx.message.author.mention, ' '.join(message)))
+            await ctx.send('{} said: {}'.format(ctx.message.author.mention, ' '.join(message)))
 
     @commands.command(name="duck")
-    async def misc_duck(self, *message):
+    async def misc_duck(self, ctx, *message):
         """<query>  -  makes a lmddgtfy link for your <query>
 
         lmddgtfy = Let Me Duck Duck Go That For You"""
         query = urllib.parse.quote(' '.join(message))
-        await self.bot.say("http://lmddgtfy.net/?q=" + query)
+        await ctx.send("http://lmddgtfy.net/?q=" + query)
 
-    @commands.command(name="restart", aliases=["getout"], pass_context=True, hidden=True)
-    async def misc_restart(self, ctx):
-        if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
-            os.system("git pull && systemctl restart butty")
+    @commands.check(is_owner)
+    @commands.command(name="restart", aliases=["getout"], hidden=True)
+    async def misc_restart(self):
+        os.system("git pull && systemctl restart butty")
 
-    @commands.command(name="presence", aliases=["statuschange"], pass_context=True, hidden=True)
-    async def misc_statuschange(self, ctx, *newgame: str):
-        if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
-            await self.bot.change_presence(game=discord.Game(name=' '.join(newgame)))
-            print("yay")
+    @commands.check(is_owner)
+    @commands.command(name="presence", aliases=["statuschange"], hidden=True, pass_context=False)
+    async def misc_statuschange(self, *new_game: str):
+        await self.bot.change_presence(game=discord.Game(name=' '.join(new_game)))
 
-    @commands.command(name="vdbug", pass_context=True, hidden=True)
+    @commands.check(is_owner)
+    @commands.command(name="vdbug", hidden=True)
     async def voice_debug(self, ctx):
         """Stop letting people use commands they shouldn't you bastard"""
-        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345':
-            return
 
-        await self.bot.say("```Python\n" + ctx.message.content[7:] + "```")
+        await ctx.send("```Python\n" + ctx.message.content[7:] + "```")
         code = ctx.message.content[7:].strip("`")
         codeobj = compile(code, '', 'exec')
 
@@ -147,13 +138,12 @@ class Misc:
 
         sys.stdout = sys.__stdout__
 
-        await self.bot.say(buffer.getvalue())
+        await ctx.send(buffer.getvalue())
 
+    @commands.check(is_owner)
     @commands.command(pass_context=True, hidden=True)
     async def debug(self, ctx, *, code: str):
         """Evaluates code."""
-        if ctx.message.author.id != '135483608491229184' and ctx.message.author.id != '135496683009081345':
-            return
 
         code = code.strip('` ')
         python = '```py\n{}\n```'
@@ -163,7 +153,7 @@ class Misc:
             'bot': self.bot,
             'ctx': ctx,
             'message': ctx.message,
-            'server': ctx.message.server,
+            'guild': ctx.message.guild,
             'channel': ctx.message.channel,
             'author': ctx.message.author
         }
@@ -176,32 +166,32 @@ class Misc:
             if inspect.isawaitable(result):
                 result = await result
         except Exception as e:
-            await self.bot.say(python.format(type(e).__name__ + ': ' + str(e)))
+            await ctx.send(python.format(type(e).__name__ + ': ' + str(e)))
             return
 
-        await self.bot.say(python.format(result))
+        await ctx.send(python.format(result))
 
-    @commands.command(name="gitpull", pass_context=True, hidden=True)
+    @commands.check(is_owner)
+    @commands.command(name="gitpull", hidden=True)
     async def misc_gitpull(self, ctx):
-        if ctx.message.author.id == "135483608491229184" or ctx.message.author.id == "135496683009081345":
-            os.system("git pull")
-            await self.bot.say("done")
+        os.system("git pull")
+        await ctx.send("done")
 
-    @commands.command(name="reload2", hidden=True, pass_context=True)
-    async def reload_module2(self, ctx, module):
-        if ctx.message.author.id == '135483608491229184' or ctx.message.author.id == '135496683009081345':
-            self.bot.unload_extension(module)
-            self.bot.load_extension(module)
-            await self.bot.say("done")
+    @commands.check(is_owner)
+    @commands.command(name="reload2", hidden=True)
+    async def reload_cog2(self, ctx, cog):
+        self.bot.unload_extension(cog)
+        self.bot.load_extension(cog)
+        await ctx.send("done")
     
-    @commands.command(name="invites", hidden=True, pass_context=True)
+    @commands.command(name="invites", hidden=True)
     async def invites(self, ctx):
-        invs = await self.bot.invites_from(ctx.message.server)
+        invs = await self.bot.invites_from(ctx.message.guild)
         t = 0
         for x in invs:
             if x.inviter == ctx.message.author:
                 t += x.uses
-        await self.bot.say("{} has {} invites".format(ctx.message.author.name, t))
+        await ctx.send("{} has {} invites".format(ctx.message.author.name, t))
 
 
 def setup(bot):

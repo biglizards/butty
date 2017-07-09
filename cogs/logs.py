@@ -7,6 +7,8 @@ import discord
 from discord.ext import commands
 import tempfile
 
+# TODO rewrite
+
 
 # print(time.mktime(message.timestamp.timetuple()))
 
