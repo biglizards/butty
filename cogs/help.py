@@ -4,6 +4,9 @@ import time
 import discord
 from discord.ext import commands
 
+# TODO rewrite
+
+
 class Helping:
 
     def __init__(self, bot_, show_hidden=False, show_check_failure=False):
