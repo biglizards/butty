@@ -1,8 +1,7 @@
-./*
-__*
-extras/*
-*/buttybot.db
+*__pycache__/
 */badwords
 *.db
 *.backup
 *secret*
+.idea/
+extras/
