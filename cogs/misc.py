@@ -92,7 +92,7 @@ class Misc:
         if not number_of_sides > 100000000000 and not number_of_dice > 10:
             print("yay")
             for x in range(0, number_of_dice):
-                diceno += "For dice " + str(x + 1) + " you rolled: " + str(random.randint(1, number_of_sides)) + "\n"
+                diceno += "For dice {} you rolled {}\n".format(x + 1, random.randint(1, number_of_sides))
             await ctx.send(diceno)
         else:
             await ctx.send("The side limit is 100000000000 and the dice limit is 10")
