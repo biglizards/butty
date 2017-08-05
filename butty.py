@@ -40,8 +40,6 @@ prefix = cogs.prefix.Prefix()
 description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 
-bot.loop
-
 bot.voice_reload_cache = None
 bot.startup_time = time.time()
 bot.secrets = defaultdict(list)
@@ -69,7 +67,7 @@ def get_traceback_from_exception(exception, message):
 
 @bot.event
 async def on_command_error(context, exception):
-    print("oh no an error")
+    print("oh no an error", exception)
     if type(exception) == discord.ext.commands.errors.CommandNotFound:
         return
 
