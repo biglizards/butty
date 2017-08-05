@@ -12,13 +12,13 @@ import cogs.prefix as prefix
 
 
 def is_owner(ctx):
-    return ctx.message.author.id in [135496683009081345, 135483608491229184]
+    return ctx.author.id in [135496683009081345, 135483608491229184]
 
 
 def is_admin(ctx):
     if is_owner(ctx):
         return True
-    return ctx.message.author.guild_permissions.manage_guild
+    return ctx.author.guild_permissions.manage_guild
 
 
 class Misc:
