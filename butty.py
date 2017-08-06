@@ -3,6 +3,7 @@ import time
 import traceback
 from collections import defaultdict
 from functools import wraps
+import sqlite3
 
 import discord
 from discord.ext import commands
@@ -15,6 +16,9 @@ from cogs.misc import is_owner
 # i don't know why you would care about that
 
 # setup for "secret" (guild specific) stuff
+
+
+#db = sqlite3.connect("cogs/butty.db")
 
 
 def event(self, coro):
@@ -40,7 +44,7 @@ prefix = cogs.prefix.Prefix()
 description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 
-bot.loop
+bot.loop # TODO: ask stalin what this is
 
 bot.voice_reload_cache = None
 bot.startup_time = time.time()
@@ -49,7 +53,7 @@ bot.secrets = defaultdict(list)
 # bot.remove_command("help")  # TODO: wtf harru why is this here
 
 # add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
-startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret"]
+startup_extensions = ["cogs.shadowing", "cogs.misc", "cogs.secret", "cogs.ascii", "cogs.logs"]
 # TODO: remove cogs.secret from startup?
 # I don't want any differences between git and live version
 
@@ -81,7 +85,6 @@ async def on_command_error(context, exception):
     channel = discord.utils.get(bot.get_all_channels(), id=332200389074223105)  # TODO change back to old error channel
 
     await channel.send(tb)
-
 
 @bot.event
 async def on_ready():
