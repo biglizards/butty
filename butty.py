@@ -53,7 +53,7 @@ bot.secrets = defaultdict(list)
 # bot.remove_command("help")  # TODO: wtf harru why is this here
 
 # add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
-startup_extensions = ["cogs.shadowing", "cogs.misc", "cogs.secret", "cogs.ascii", "cogs.logs"]
+startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret"]
 # TODO: remove cogs.secret from startup?
 # I don't want any differences between git and live version
 
@@ -73,7 +73,7 @@ def get_traceback_from_exception(exception, message):
 
 @bot.event
 async def on_command_error(context, exception):
-    print("oh no an error")
+    print("oh no an error", exception)
     if type(exception) == discord.ext.commands.errors.CommandNotFound:
         return
 
