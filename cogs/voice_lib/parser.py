@@ -20,8 +20,8 @@ class Handler(mkvparse.MatroskaHandler):
 
 
 class Buffer:
-    def __init__(self, raw_packet_stream):
-        self.raw_packets = raw_packet_stream
+    def __init__(self, raw_packets):
+        self.raw_packets = raw_packets
         self.packets = deque()
 
         self.handler = Handler(self.packets)
@@ -38,12 +38,15 @@ class Buffer:
 
     def read(self, n):
         # Called by mkvparse
-        return self.raw_packets.read(n)
+        try:
+            return self.raw_packets.read(n)
+        except ConnectionError:
+            print("shit")
 
 
 class Source(discord.AudioSource):
-    def __init__(self, file, song=None):
-        self.buffer = Buffer(file)
+    def __init__(self, file, song=None, buffer=Buffer):
+        self.buffer = buffer(file)
         self.buffer.parse_opus()
         self.song = song
 
@@ -57,11 +60,6 @@ class Source(discord.AudioSource):
 
     def is_opus(self):
         return True
-
-
-class EmptySource(discord.AudioSource):
-    def read(self):
-        return b''
 
 
 def get_source(song):
