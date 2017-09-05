@@ -61,6 +61,7 @@ class Song:
         self.codec = info.get('acodec')
         self.name = info.get('title')
         self.author = author
+        self.skips = []
 
         self.made_at = time.time()
 
@@ -247,6 +248,17 @@ class Voice:
                 return await ctx.send("no u")
         await ctx.voice_client.disconnect()
 
+    @command("skip")
+    @requires_voice_client
+    async def voice_skip(self, ctx):
+         if ctx.author.id in ctx.voice_client.song.skips:
+             return await ctx.send("You have already voted to skip this song!")
+         ctx.voice_client.song.skips.append(ctx.author.id)
+         await ctx.send("Your vote has been counted")
+         if len(ctx.voice_client.channel.members) / 2 <= len(ctx.voice_client.song.skips):
+              await ctx.send(f"Song has been skipped by {len(ctx.voice_client.song.skips)} users")
+              ctx.voice_client.song.skips = []
+              ctx.voice_client.stop()
 
 def get_info(url, ytdl_opts=None, search=None):
     opts = {
