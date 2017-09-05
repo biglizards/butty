@@ -256,9 +256,9 @@ class Voice:
          ctx.voice_client.song.skips.append(ctx.author.id)
          await ctx.send("Your vote has been counted")
          if len(ctx.voice_client.channel.members) / 2 <= len(ctx.voice_client.song.skips):
-              await ctx.send(f"Song has been skipped by {len(ctx.voice_client.song.skips)} users")
-              ctx.voice_client.song.skips = []
-              ctx.voice_client.stop()
+             await ctx.send(f"Song has been skipped by {len(ctx.voice_client.song.skips)} users")
+             ctx.voice_client.song.skips = []
+             ctx.voice_client.stop()
 
 def get_info(url, ytdl_opts=None, search=None):
     opts = {
