@@ -251,14 +251,17 @@ class Voice:
     @command("skip")
     @requires_voice_client
     async def voice_skip(self, ctx):
-         if ctx.author.id in ctx.voice_client.song.skips:
-             return await ctx.send("You have already voted to skip this song!")
-         ctx.voice_client.song.skips.append(ctx.author.id)
-         await ctx.send("Your vote has been counted")
-         if len(ctx.voice_client.channel.members) / 2 <= len(ctx.voice_client.song.skips):
-             await ctx.send(f"Song has been skipped by {len(ctx.voice_client.song.skips)} users")
+         song = ctx.voice_client.song
+         if ctx.author in song.skips:
+             return await ctx.send("`{0.name}` {0.length} added to queue /s".format(song))
+         song.skips.append(ctx.author.id)
+         votes_needed = len(ctx.voice_client.channel.members) // 2 + 1
+         if votes_needed <= len(song.skips):
+             await ctx.send("Song has been skipped by {} users".format(len(song.skips)))
              ctx.voice_client.song.skips = []
              ctx.voice_client.stop()
+         else:
+             await ctx.send("Voting to skip {} ({}/{} votes needed)".format(song.name, len(song.skips), votes_needed))
 
 def get_info(url, ytdl_opts=None, search=None):
     opts = {
