@@ -89,6 +89,9 @@ class Misc:
 
         Rolls some dice, for when just two choices aren't enough"""
         diceno = ""
+        if number_of_sides <= 0 or number_of_dice <= 0:
+            await ctx.send("Number of sides and number of dice must be greater than 0")
+            return
         if not number_of_sides > 100000000000 and not number_of_dice > 10:
             print("yay")
             for x in range(0, number_of_dice):
