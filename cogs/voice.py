@@ -252,10 +252,10 @@ class Voice:
     @requires_voice_client
     async def voice_skip(self, ctx):
          song = ctx.voice_client.song
+         votes_needed = len(ctx.voice_client.channel.members) // 2 + 1
          if ctx.author in song.skips:
              return await ctx.send("`{0.name}` {0.length} added to queue /s".format(song))
          song.skips.append(ctx.author.id)
-         votes_needed = len(ctx.voice_client.channel.members) // 2 + 1
          if votes_needed <= len(song.skips):
              await ctx.send("Song has been skipped by {} users".format(len(song.skips)))
              ctx.voice_client.song.skips = []
