@@ -255,13 +255,13 @@ class Voice:
          votes_needed = len(ctx.voice_client.channel.members) // 2 + 1
          if ctx.author in song.skips:
              return await ctx.send("`{0.name}` {0.length} added to queue /s".format(song))
-         song.skips.append(ctx.author.id)
+         song.skips.append(ctx.author)
          if votes_needed <= len(song.skips):
              await ctx.send("Song has been skipped by {} users".format(len(song.skips)))
              ctx.voice_client.song.skips = []
              ctx.voice_client.stop()
          else:
-             await ctx.send("Voting to skip {} ({}/{} votes needed)".format(song.name, len(song.skips), votes_needed))
+             await ctx.send("Voting to skip `{}` ({}/{} votes needed)".format(song.name, len(song.skips), votes_needed))
 
 def get_info(url, ytdl_opts=None, search=None):
     opts = {
