@@ -189,12 +189,16 @@ class Misc:
     
     @commands.command(name="invites", hidden=True)
     async def invites(self, ctx):
-        invs = await self.bot.invites_from(ctx.message.guild)
+        if len(ctx.message.mentions) == 0:
+            member = ctx.author
+        else:
+            member = ctx.message.mentions[0]
+        invs = await ctx.guild.invites()
         t = 0
         for x in invs:
-            if x.inviter == ctx.message.author:
+            if x.inviter == member:
                 t += x.uses
-        await ctx.send("{} has {} invites".format(ctx.message.author.name, t))
+        await ctx.send("{} has {} invites".format(member.name, t))
 
 
 def setup(bot):
