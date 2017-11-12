@@ -113,7 +113,7 @@ async def reload_cog(ctx, cog):
 
 try:
     with open("extras/token", 'r') as Token:
-        token = Token.read()
+        token = Token.read().replace('\n', '')
         bot.run(token)
 except FileNotFoundError:
     print('token not found\nplease create a file called "token" in the "extras" folder and put the token in that')
