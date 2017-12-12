@@ -16,11 +16,7 @@ from cogs.misc import is_owner
 # i don't know why you would care about that
 
 # setup for "secret" (guild specific) stuff
-
-
-#db = sqlite3.connect("cogs/butty.db")
-
-
+# this is a horrible hack, TODO improve
 def event(self, coro):
     @wraps(coro)
     async def wrapper(*args, **kwargs):
@@ -38,19 +34,15 @@ commands.Bot.event_dec = commands.Bot.event
 commands.Bot.secret = secret
 commands.Bot.event = event
 
-
+# begin main butty
 prefix = cogs.prefix.Prefix()
 
 description = '''Butty. All you need, and more, less some things you need'''
 bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
 
-bot.loop # TODO: ask stalin what this is
-
 bot.voice_reload_cache = None
 bot.startup_time = time.time()
 bot.secrets = defaultdict(list)
-
-# bot.remove_command("help")  # TODO: wtf harru why is this here
 
 # add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
 startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret"]
@@ -59,7 +51,10 @@ startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret"]
 
 
 def get_traceback_from_exception(exception, message):
-    tb = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))  # what even
+    traceback.format_exception()
+    tb = ''.join(traceback.format_exception(etype=type(exception),
+                                            value=exception,
+                                            tb=exception.__traceback__))
 
     if message.guild:
         location = "**{0.name}** ({0.id})".format(message.guild)
@@ -85,6 +80,7 @@ async def on_command_error(context, exception):
     channel = discord.utils.get(bot.get_all_channels(), id=332200389074223105)  # TODO change back to old error channel
 
     await channel.send(tb)
+
 
 @bot.event
 async def on_ready():
