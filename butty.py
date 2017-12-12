@@ -89,7 +89,7 @@ async def on_ready():
     print(bot.user.id)
     print('------')
 
-    await bot.change_presence(game=discord.Game(name='help why is test butty still up'))
+    await bot.change_presence(game=discord.Game(name='[help for help'))
 
     for extension in startup_extensions:
         try:
