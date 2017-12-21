@@ -98,6 +98,9 @@ class Voice:
         if not ctx.author.voice:
             await ctx.send("Join a voice channel")
             return
+        if not ctx.author.voice.channel.permissions_for(ctx.me).connect:
+            await ctx.send("I don't have permission to join that channel; ask a moderator to let me in")
+
         await ctx.author.voice.channel.connect()
         ctx.voice_client.queue = []
         ctx.voice_client.queue_loop = None
@@ -154,6 +157,10 @@ class Voice:
 
         if not ctx.voice_client:
             await self.join_voice(ctx)
+
+        if not hasattr(ctx.voice_client, "ready"):  # can happen if someone plays two songs before butty can join
+            await ctx.send("Woah, I'm still trying to join from the first command\ngive me a minute")
+            return
 
         async with ctx.typing():
             info = await self.bot.loop.run_in_executor(None, lambda: get_info(song_name, search="auto"))

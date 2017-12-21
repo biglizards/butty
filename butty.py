@@ -45,13 +45,12 @@ bot.startup_time = time.time()
 bot.secrets = defaultdict(list)
 
 # add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
-startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret"]
+startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret", "cogs.reminders"]
 # TODO: remove cogs.secret from startup?
 # I don't want any differences between git and live version
 
 
 def get_traceback_from_exception(exception, message):
-    traceback.format_exception()
     tb = ''.join(traceback.format_exception(etype=type(exception),
                                             value=exception,
                                             tb=exception.__traceback__))
