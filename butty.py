@@ -45,7 +45,7 @@ bot.startup_time = time.time()
 bot.secrets = defaultdict(list)
 
 # add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
-startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret", "cogs.reminders"]
+startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret", "cogs.reminders", "cogs.ascii"]
 # TODO: remove cogs.secret from startup?
 # I don't want any differences between git and live version
 
