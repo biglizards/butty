@@ -26,7 +26,7 @@ class Ascii:
         """
         if not url:
             try:
-                url = ctx.message.attachments['url']
+                url = ctx.message.attachments[0].url
             except IndexError:
                 await self.bot.say("Okay first of all you need to give me an image")
                 return
