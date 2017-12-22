@@ -41,12 +41,12 @@ class Reminders:
         """Because you need to not forget stuff
 
         EG:
-        [remindme 2 hours, remove the cake from hell
-        [r show
+        [remindme add 2 hours, remove the cake from hell
+        [remindme show or [r show
         """
         pass
 
-    @remindme.command(aliases=['a'])
+    @remindme.command(aliases=['a'], brief="e.g. [remindme add 1 hour, open the door")
     async def add(self, ctx, *args):
         msg = " ".join(args).split(", ", 1)
         cal = parsedatetime.Calendar()
