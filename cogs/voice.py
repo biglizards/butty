@@ -25,6 +25,7 @@ quips = {"stop": "B-b-but I haven't even got started...",
          "resume": "DW nothing was paused to begin with"
          }
 
+
 def is_author(ctx, song=None):
     if song is None:
         song = ctx.voice_client.song
@@ -54,16 +55,17 @@ def requires_playing(func):
 
 
 class Song:
-    def __init__(self, info, author):
+    def __init__(self, info, ctx):
         self.length = self.get_length(info.get('duration'))
         self.page_url = info.get('webpage_url')
         self.media_url = info.get('url')
         self.codec = info.get('acodec')
         self.name = info.get('title')
-        self.author = author
+        self.author = ctx.author
         self.skips = []
 
         self.made_at = time.time()
+        self.ctx = ctx
 
     @staticmethod
     def get_length(duration):
@@ -127,8 +129,13 @@ class Voice:
 
     async def play_next_in_queue(self, voice_client):
         next_song = self.get_next_in_queue(voice_client, pop=True)
-
-        source = await self.bot.loop.run_in_executor(None, parser.get_source, next_song)
+        try:
+            source = await self.bot.loop.run_in_executor(None, parser.get_source, next_song)
+        except ConnectionError:
+            await next_song.ctx.channel.send("I couldn't play `{}`, sorry\n"
+                                             "If you think this is a bug, feel free to report it"
+                                             .format(next_song.name))
+            raise
         voice_client.play(source)
         voice_client.song = next_song
 
@@ -143,6 +150,8 @@ class Voice:
             try:
                 song = await self.play_next_in_queue(ctx.voice_client)
                 await ctx.send('Now playing: `{0.name}` {0.length}'.format(song))
+            except ConnectionError:
+                pass
             except Exception as e:
                 print("ok this REALLY should never happen", e)
                 traceback.print_exc()
@@ -164,7 +173,7 @@ class Voice:
 
         async with ctx.typing():
             info = await self.bot.loop.run_in_executor(None, lambda: get_info(song_name, search="auto"))
-            song = Song(info, ctx.author)
+            song = Song(info, ctx)
 
         self.start_queue_loop(ctx)
 
