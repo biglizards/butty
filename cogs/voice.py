@@ -88,7 +88,7 @@ class Song:
 
         print("refreshing")
         info = get_info(self.page_url)
-        self.__init__(info, self.author)
+        self.__init__(info, self.ctx)
 
 
 class Voice:
