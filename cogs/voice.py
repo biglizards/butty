@@ -216,6 +216,9 @@ class Voice:
     @command("loop", aliases=['loopadoop'])
     @requires_voice_client
     async def voice_loop(self, ctx):
+        if ctx.voice_client.song is None:
+            await ctx.send(quips.get('loop'))
+            return
         ctx.voice_client.looping = not ctx.voice_client.looping
         if ctx.voice_client.looping:
             self.start_queue_loop(ctx)
