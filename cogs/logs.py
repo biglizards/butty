@@ -32,9 +32,12 @@ class Logs:
                          message.channel.id, message.guild.id, message.content.encode(),
                          ', '.join([x.url for x in message.attachments]), message.author.name))
             print(message.id)
+            if last_message_id and message.id < last_message_id[0]:
+                break
         self.c.executemany('INSERT INTO messages VALUES (?,?,?,?,?,?,?,?)', logs)
         self.database.commit()
         print("got thing")
+        return
 
         data_list = self.c.execute('select timestamp, content, attachments, authorName from messages where channelid=? '
                                    'ORDER BY id ASC', (ctx.channel.id,)).fetchall()
@@ -42,7 +45,6 @@ class Logs:
         file = open("extras/logs.txt", "w", encoding="utf-8")
         for timestamp, content, attachments, author in data_list:
             message = []
-            print(1)
             message.append("{} - {}: ".format(timestamp, author))
             if content:
                 message.append(content.decode())
@@ -50,18 +52,18 @@ class Logs:
                 message.append("\nAttachments: {}".format(attachments))
             message.append("\n")
             file.write("".join(message))
+        file.close()
         print("gonna send it")
         try:
             await ctx.send("here", file=discord.File("extras/logs.txt", filename="logs.txt"))
-            file.close()
             os.remove('extras/logs.txt')
         except discord.errors.HTTPException:
             with open('extras/logs.txt', 'rb') as f_in:
                 with gzip.open('extras/logs.txt.gz', 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
-            file.close()
-            os.remove('extras/logs.txt')
-            os.remove('extras/logs.txt.gz')
+            await ctx.send("here", file=discord.File("extras/logs.txt.gz", filename="logs.txt.gz"))
+#            os.remove('extras/logs.txt')
+#            os.remove('extras/logs.txt.gz')
 
 #     @commands.command(name="logs", aliases=['getlogs', 'etest'], pass_context=True)
 #     async def logs_getlogs(self, context):
