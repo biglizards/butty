@@ -1,4 +1,5 @@
 import asyncio
+import math
 import random
 import time
 import traceback
@@ -271,7 +272,7 @@ class Voice:
     @requires_voice_client
     async def voice_skip(self, ctx):
          song = ctx.voice_client.song
-         votes_needed = len(ctx.voice_client.channel.members) // 2 + 1
+         votes_needed = math.ceil((len(ctx.voice_client.channel.members)-1)/2)
          if ctx.author in song.skips:
              return await ctx.send("`{0.name}` {0.length} added to queue /s".format(song))
          song.skips.append(ctx.author)
