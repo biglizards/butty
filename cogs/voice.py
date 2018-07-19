@@ -212,6 +212,8 @@ class Voice:
             reply = "Queue is empty, use [play to play something"
         else:
             reply = "Queue:\n" + contents
+        if len(reply) > 2000:
+            reply = reply[:1963] + '`\nalso more, but the list is too full'
         await ctx.send(reply)
 
     @command("loop", aliases=['loopadoop'])

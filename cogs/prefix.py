@@ -12,7 +12,7 @@ class Prefix:
 
         self.c.execute('''CREATE TABLE IF NOT EXISTS prefixes
                           (id text, prefix text)''')
-        self.prefixes = {}
+        self.prefixes = {165800036557520896: 'alexa '}
         for server, prefix in self.c.execute("SELECT * FROM prefixes").fetchall():
             self.prefixes[server] = prefix
 
@@ -31,16 +31,23 @@ class Prefix:
             return '{0.user.mention} '.format(bot)  # because sometimes a mention has an ! in it for no reason
         # TODO replace with nicer looking regex
 
+        if message.content.startswith('['):
+            return '['  # always respond to '['
+
         if check_db:
             prefix = self.c.execute("SELECT prefix FROM prefixes WHERE id=?", (message.guild.id,)).fetchone()
+            if prefix:
+                prefix = prefix[0]
         else:
             prefix = self.prefixes.get(message.guild.id)
 
         if not prefix:
             return '['
-        if prefix[0] != self.prefixes.get(message.guild.id):
-            self.prefixes[message.guild.id] = prefix[0]
+        if prefix != self.prefixes.get(message.guild.id):
+            self.prefixes[message.guild.id] = prefix
 
-        return prefix[0]
+        return prefix
         # TODO i'm sure you can make this look nicer
         # maybe replace guild.id with guild (i think it would work)
+def setup(bot):
+   bot.command_prefix = Prefix().get_prefix 
