@@ -50,4 +50,4 @@ class Prefix:
         # TODO i'm sure you can make this look nicer
         # maybe replace guild.id with guild (i think it would work)
 def setup(bot):
-   bot.command_prefix = Prefix().get_prefix 
+   bot.command_prefix = Prefix().get_prefix
