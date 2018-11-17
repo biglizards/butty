@@ -30,7 +30,7 @@ class Ascii:
             except IndexError:
                 await self.bot.say("Okay first of all you need to give me an image")
                 return
-        else if url[0] == "<" and url[-1] == ">":
+        elif url[0] == "<" and url[-1] == ">":
             url = url[1:-1]
 
         filename = "pictures/{}".format(ctx.message.id)
