@@ -3,6 +3,8 @@ import os
 import random
 import sys
 import urllib
+import ast
+import operator
 from io import StringIO
 
 import discord
@@ -10,6 +12,12 @@ from discord.ext import commands
 
 import cogs.prefix as prefix
 
+ops_list = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.div
+}
 
 def is_owner(ctx):
     return ctx.author.id in [135496683009081345, 135483608491229184]
@@ -19,6 +27,21 @@ def is_admin(ctx):
     if is_owner(ctx):
         return True
     return ctx.author.guild_permissions.manage_guild
+
+def do_maths(maths):
+    parsed = ast.parse(maths, mode='eval')
+    def math_result(parsed):
+        if isinstance(parsed, ast.Expression):
+            return math_result(parsed.body)
+        elif isinstance(parsed, ast.Str):
+            return parsed.s
+        elif isinstance(parsed, ast.Num):
+            return parsed.n
+        elif isinstance(parsed, ast.BinOp):
+            return ops_list[type(parsed.op)](math_result(parsed.left), math_result(parsed.right))
+        else:
+            return False
+    return math_result(parsed.body)
 
 
 class Misc:
@@ -113,6 +136,17 @@ class Misc:
         lmddgtfy = Let Me Duck Duck Go That For You"""
         query = urllib.parse.quote(' '.join(message))
         await ctx.send("http://lmddgtfy.net/?q=" + query)
+        
+    @commands.command(name="calculate", aliases=['c'])
+    async def calculator(self, ctx, *message):
+        """Calculator
+
+        Pretty self-explanatory - for when you're too lazy to open anything but Discord"""
+        result = do_maths(message)
+        if result:
+            await ctx.send(result)
+        else:
+            await ctx.send("Ow, that hurt my head (or it wasn't maths) - try again")
 
     @commands.check(is_owner)
     @commands.command(name="restart", aliases=["getout"], hidden=True)
