@@ -48,9 +48,9 @@ def do_maths(maths):
         elif isinstance(parsed, ast.UnaryOp):
             # parsed here is actually already the body, as the original parsed was an
             # Expression and so recursion happened.
-            return ops_list[type(parsed.op)](math_result(parsed.operand.n))
+            return ops_list[type(parsed.op)](math_result(parsed.operand))
         else:
-            raise MathsInputError
+            raise MathsInputError(parsed)
     return math_result(parsed.body)
 
 
@@ -160,6 +160,7 @@ class Misc:
             await ctx.send(result)
         except ValueError:
             await ctx.send("Ow, that hurt my head (or it wasn't maths) - try again")
+            raise
         
 
     @commands.check(is_owner)
