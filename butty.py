@@ -67,6 +67,7 @@ def get_traceback_from_exception(exception, message):
 
 @bot.event
 async def on_command_error(context, exception):
+    context.send("An unhandled error occured! Big sad :( Tell an admin to check the logs.")
     print("oh no an error", exception)
     if type(exception) == discord.ext.commands.errors.CommandNotFound:
         return
