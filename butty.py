@@ -67,7 +67,6 @@ def get_traceback_from_exception(exception, message):
 
 @bot.event
 async def on_command_error(context, exception):
-    context.send("An unhandled error occured! Big sad :( Tell an admin to check the logs.")
     print("oh no an error", exception)
     if type(exception) == discord.ext.commands.errors.CommandNotFound:
         return
@@ -80,6 +79,7 @@ async def on_command_error(context, exception):
     channel = discord.utils.get(bot.get_all_channels(), id=332200389074223105)  # TODO change back to old error channel
 
     await channel.send(tb)
+    await context.send("An unhandled error occured! Big sad :( Tell an admin to check the logs (unless you're just being dumb)")
 
 
 @bot.event
