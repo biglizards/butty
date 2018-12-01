@@ -30,6 +30,9 @@ def is_admin(ctx):
         return True
     return ctx.author.guild_permissions.manage_guild
 
+class MathsInputError(ValueError):
+   pass
+
 def do_maths(maths):
     parsed = ast.parse(maths, mode='eval')
     def math_result(parsed):
@@ -42,9 +45,11 @@ def do_maths(maths):
         elif isinstance(parsed, ast.BinOp):
             return ops_list[type(parsed.op)](math_result(parsed.left), math_result(parsed.right))
         elif isinstance(parsed, ast.UnaryOp):
-            return ops_list[type(parsed.op)](math_result(parsed.body.operand.n))
+            # parsed here is actually already the body, as the original parsed was an
+            # Expression and so recursion happened.
+            return ops_list[type(parsed.op)](math_result(parsed.operand.n))
         else:
-            return False
+            raise MathsInputError
     return math_result(parsed.body)
 
 
@@ -146,11 +151,12 @@ class Misc:
         """Calculator
 
         Pretty self-explanatory - for when you're too lazy to open anything but Discord"""
-        result = do_maths(" ".join(message))
-        if result:
+        try:
+            result = do_maths(" ".join(message))
             await ctx.send(result)
-        else:
+        except ValueError:
             await ctx.send("Ow, that hurt my head (or it wasn't maths) - try again")
+        
 
     @commands.check(is_owner)
     @commands.command(name="restart", aliases=["getout"], hidden=True)
