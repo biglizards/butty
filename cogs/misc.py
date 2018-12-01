@@ -16,7 +16,7 @@ ops_list = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
-    ast.Div: operator.truediv
+    ast.Div: operator.truediv,
     ast.UAdd: operator.abs,
     ast.USub: operator.neg
 }
