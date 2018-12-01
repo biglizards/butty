@@ -6,6 +6,7 @@ import urllib
 import ast
 import operator
 from io import StringIO
+import sqlite3
 
 import discord
 from discord.ext import commands
@@ -16,7 +17,7 @@ ops_list = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
-    ast.Div: operator.truediv
+    ast.Div: operator.truediv,
     ast.UAdd: operator.abs,
     ast.USub: operator.neg
 }
@@ -43,6 +44,7 @@ def do_maths(maths):
             return ops_list[type(parsed.op)](math_result(parsed.left), math_result(parsed.right))
         elif isinstance(parsed, ast.UnaryOp):
             return ops_list[type(parsed.op)](math_result(parsed.body.operand.n))
+            return ops_list[type(parsed.op)](math_result(parsed.operand))
         else:
             return False
     return math_result(parsed.body)
@@ -52,6 +54,9 @@ class Misc:
     def __init__(self, bot_):
         self.bot = bot_
         self.prefix = prefix.Prefix()
+        self.cdb = sqlite3.connect("cogs/cookies1.db")
+        self.cc = self.cdb.cursor()
+        self.cc.execute("create table if not exists cookies (cookie_count, uid)")
 
     def should_remove(self, message):
         prefix_ = self.prefix.get_prefix(self.bot, message, False)
@@ -237,6 +242,42 @@ class Misc:
                 t += x.uses
         await ctx.send("{} has {} invites".format(member.name, t))
 
+    @commands.command(hidden=True)
+    async def cookie(self, ctx, user, thanks_message="thanks for helping someone out"):
+        if ctx.guild.id != 204621105720328193 or not ctx.author.guild_permissions.ban_members:
+            return
+        if ctx.message.mentions:
+            uid = ctx.message.mentions[0].id
+        else:
+            try:
+                uid = int(user)
+            except ValueError:
+                return await ctx.send("invalid userid, either put the number or a ping (but dont ping in public channels tho)")
+        if self.cc.execute("select cookie_count from cookies where uid = ?", (uid,)).fetchall():
+            self.cc.execute("update cookies set cookie_count = cookie_count + 1 where uid = ?", (uid,))
+        else:
+            self.cc.execute("insert into cookies (cookie_count, uid) values (?, ?)", (1, uid))
+        self.cdb.commit()
+        await ctx.send("cookie awarded")
+        await discord.utils.get(ctx.guild.channels, id=417108128669237259).send("<:blobthumbsup:357267430105677844> {} got a cookie! {}".format(discord.utils.get(ctx.guild.members, id=uid), thanks_message))
+
+    @commands.command(hidden=True)
+    async def cookies(self, ctx, user=None):
+        if ctx.guild.id != 204621105720328193:
+            return
+        if user is None:
+            uid = ctx.message.author.id
+        elif ctx.message.mentions:
+            uid = ctx.message.mentions[0].id
+        else:
+            try:
+                uid = int(user)
+            except ValueError:
+                return await ctx.send("invalid user id")         
+        count = self.cc.execute("select cookie_count from cookies where uid = ?", (uid,)).fetchone()
+        if not count:
+            return await ctx.send("{} dont have any cookies...".format('they' if user else 'you'))
+        await ctx.send("{} have {} cookies, gz".format('they' if user else 'you', count[0]))
 
 def setup(bot):
     bot.add_cog(Misc(bot))
