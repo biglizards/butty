@@ -16,7 +16,9 @@ ops_list = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
-    ast.Div: operator.div
+    ast.Div: operator.truediv
+    ast.UAdd: operator.abs,
+    ast.USub: operator.neg
 }
 
 def is_owner(ctx):
@@ -39,6 +41,8 @@ def do_maths(maths):
             return parsed.n
         elif isinstance(parsed, ast.BinOp):
             return ops_list[type(parsed.op)](math_result(parsed.left), math_result(parsed.right))
+        elif isinstance(parsed, ast.UnaryOp):
+            return ops_list[type(parsed.op)](math_result(parsed.body.operand.n))
         else:
             return False
     return math_result(parsed.body)
@@ -142,7 +146,7 @@ class Misc:
         """Calculator
 
         Pretty self-explanatory - for when you're too lazy to open anything but Discord"""
-        result = do_maths(message)
+        result = do_maths(" ".join(message))
         if result:
             await ctx.send(result)
         else:
