@@ -30,6 +30,9 @@ def is_admin(ctx):
         return True
     return ctx.author.guild_permissions.manage_guild
 
+class MathsInputError(ValueError):
+   pass
+
 def do_maths(maths):
     parsed = ast.parse(maths, mode='eval')
     def math_result(parsed):
@@ -46,7 +49,7 @@ def do_maths(maths):
             # Expression and so recursion happened.
             return ops_list[type(parsed.op)](math_result(parsed.operand.n))
         else:
-            return False
+            raise MathsInputError
     return math_result(parsed.body)
 
 
@@ -148,12 +151,12 @@ class Misc:
         """Calculator
 
         Pretty self-explanatory - for when you're too lazy to open anything but Discord"""
-        result = do_maths(" ".join(message))
-        # has to be is False, otherwise it catches 0, which is falsey in Python (for some reason?)
-        if result is False:
+        try:
+            result = do_maths(" ".join(message))
             await ctx.send(result)
-        else:
+        except MathsInputError:
             await ctx.send("Ow, that hurt my head (or it wasn't maths) - try again")
+        
 
     @commands.check(is_owner)
     @commands.command(name="restart", aliases=["getout"], hidden=True)
