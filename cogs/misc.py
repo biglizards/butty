@@ -142,11 +142,11 @@ class Misc:
         await ctx.send("http://lmddgtfy.net/?q=" + query)
         
     @commands.command(name="calculate", aliases=['c'])
-    async def calculator(self, ctx, message):
+    async def calculator(self, ctx, *message):
         """Calculator
 
         Pretty self-explanatory - for when you're too lazy to open anything but Discord"""
-        result = do_maths(message)
+        result = do_maths(" ".join(message))
         if result:
             await ctx.send(result)
         else:
