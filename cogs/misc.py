@@ -154,7 +154,7 @@ class Misc:
         try:
             result = do_maths(" ".join(message))
             await ctx.send(result)
-        except MathsInputError:
+        except ValueError:
             await ctx.send("Ow, that hurt my head (or it wasn't maths) - try again")
         
 
