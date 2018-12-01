@@ -47,7 +47,7 @@ def do_maths(maths):
         elif isinstance(parsed, ast.UnaryOp):
             # parsed here is actually already the body, as the original parsed was an
             # Expression and so recursion happened.
-            return ops_list[type(parsed.op)](math_result(parsed.operand.n))
+            return ops_list[type(parsed.op)](math_result(parsed.operand))
         else:
             raise MathsInputError
     return math_result(parsed.body)
