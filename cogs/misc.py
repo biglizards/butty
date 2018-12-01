@@ -16,7 +16,7 @@ ops_list = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
-    ast.Div: operator.div
+    ast.Div: operator.truediv
 }
 
 def is_owner(ctx):
@@ -138,7 +138,7 @@ class Misc:
         await ctx.send("http://lmddgtfy.net/?q=" + query)
         
     @commands.command(name="calculate", aliases=['c'])
-    async def calculator(self, ctx, *message):
+    async def calculator(self, ctx, message):
         """Calculator
 
         Pretty self-explanatory - for when you're too lazy to open anything but Discord"""
