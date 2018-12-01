@@ -17,6 +17,7 @@ class Prefix:
             self.prefixes[server] = prefix
 
     def get_prefix(self, bot, message, check_db=False):
+        print("get prefix called")
 
         # if it's a pm: return '['
         # if '@butty ' is at the start of the message, return '@butty ' (note the space)
@@ -36,6 +37,7 @@ class Prefix:
 
         if check_db:
             prefix = self.c.execute("SELECT prefix FROM prefixes WHERE id=?", (message.guild.id,)).fetchone()
+            print("prefix from db is", prefix)
             if prefix:
                 prefix = prefix[0]
         else:
@@ -46,6 +48,7 @@ class Prefix:
         if prefix != self.prefixes.get(message.guild.id):
             self.prefixes[message.guild.id] = prefix
 
+        print("prefix", prefix)
         return prefix
         # TODO i'm sure you can make this look nicer
         # maybe replace guild.id with guild (i think it would work)
