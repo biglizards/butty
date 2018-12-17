@@ -201,6 +201,8 @@ class Voice:
             except AttributeError:
                 return  # it actually wasn't playing (thanks d.py)
             reply = "Currently playing: `{0.name}` {0.length}".format(song)
+            if ctx.voice_client.looping:
+                reply += " on loop"
         await ctx.send(reply)
 
     @command("queue", aliases=['q'])
