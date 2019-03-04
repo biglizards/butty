@@ -79,7 +79,7 @@ async def on_command_error(context, exception):
     channel = discord.utils.get(bot.get_all_channels(), id=332200389074223105)  # TODO change back to old error channel
 
     await channel.send(tb)
-    await context.send("An unhandled error occured! Big sad :( Tell an admin to check the logs (unless you're just being dumb)")
+    await context.send("An unhandled error occured! Tell stalin to check the logs (unless you're just being dumb)")
 
 
 @bot.event
