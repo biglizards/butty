@@ -2,7 +2,6 @@ import asyncio
 import math
 import random
 import time
-import traceback
 from functools import wraps
 
 import discord
@@ -12,6 +11,7 @@ from discord.ext.commands import command
 from youtubesearchpython import SearchVideos
 
 import cogs.voice_lib.parser as parser
+from error import send_error_log
 from .misc import is_admin
 
 quips = {"stop": "B-b-but I haven't even got started...",
@@ -42,6 +42,7 @@ def requires_voice_client(func):
             quip = quips.get(ctx.command.name, "Butty needs to be in voice to do this; use [play to play something")
             return await ctx.send(quip)
         return await func(*args, **kwargs)
+
     return temp
 
 
@@ -53,11 +54,12 @@ def requires_playing(func):
             quip = quips.get(ctx.command.name, "Butty needs to be playing to do this; use [play to play something")
             return await ctx.send(quip)
         return await func(*args, **kwargs)
+
     return temp  # TODO DRY ?
 
 
 class Song:
-    def __init__(self, info, ctx):
+    def __init__(self, info, ctx, module):
         self.length = self.get_length(info.get('duration'))
         self.page_url = info.get('webpage_url')
         self.media_url = info.get('url')
@@ -68,6 +70,7 @@ class Song:
 
         self.made_at = time.time()
         self.ctx = ctx
+        self.module = module
 
     @staticmethod
     def get_length(duration):
@@ -88,8 +91,8 @@ class Song:
         if time.time() < self.made_at + 10:
             return
 
-        info = get_info(self.page_url)
-        self.__init__(info, self.ctx)
+        info = self.module.get_info(self.page_url, ctx=self.ctx)
+        self.__init__(info, self.ctx, self.module)
 
 
 class Voice(commands.Cog):
@@ -130,10 +133,15 @@ class Voice(commands.Cog):
         if not buffer.parser.is_alive() and len(buffer.packets) < 250:  # TODO check for race conditions
             next_song.refresh_info()
 
-    async def play_next_in_queue(self, voice_client):
+    async def play_next_in_queue(self, ctx):
+        voice_client = ctx.voice_client
         next_song = self.get_next_in_queue(voice_client, pop=True)
         try:
-            source = await self.bot.loop.run_in_executor(None, parser.get_source, next_song, voice_client.use_opus)
+            source = await self.bot.loop.run_in_executor(
+                None, parser.get_source,
+                # args:
+                next_song, voice_client.use_opus
+            )
         except ConnectionError:
             await next_song.ctx.channel.send("I couldn't play `{}`, sorry\n"
                                              "If you think this is a bug, feel free to report it"
@@ -151,14 +159,10 @@ class Voice(commands.Cog):
                 await asyncio.sleep(1)
                 continue
             try:
-                song = await self.play_next_in_queue(ctx.voice_client)
+                song = await self.play_next_in_queue(ctx)
                 await ctx.send('Now playing: `{0.name}` {0.length}'.format(song))
-            except ConnectionError as e:
-                print("what", e)
-                traceback.print_exc()
             except Exception as e:
-                print("ok this REALLY should never happen", e)
-                traceback.print_exc()
+                await send_error_log(ctx, e, bot=self.bot, is_voice=True)
 
     def start_queue_loop(self, ctx):
         if not ctx.voice_client.queue_loop or ctx.voice_client.queue_loop.done():
@@ -177,13 +181,12 @@ class Voice(commands.Cog):
 
         async with ctx.typing():
             try:
-                info = await self.bot.loop.run_in_executor(None, lambda: get_info(song_name, search="auto"))
-                song = Song(info, ctx)
+                info = await self.bot.loop.run_in_executor(
+                    None, lambda: self.get_info(song_name, search="auto", ctx=ctx)
+                )
+                song = Song(info, ctx, module=self)
             except Exception as e:
-                raise e
-                await ctx.send(
-                    "Unable to get url (YouTube search is broken right now, but links still work. Should be fixed soon :fingers_crossed:)")
-                return
+                return await send_error_log(ctx, e, bot=self.bot, is_voice=True)
 
         self.start_queue_loop(ctx)
 
@@ -299,30 +302,29 @@ class Voice(commands.Cog):
         else:
             await ctx.send("Voting to skip `{}` ({}/{} votes needed)".format(song.name, len(song.skips), votes_needed))
 
+    def get_info(self, url, ytdl_opts=None, search=None, retry=True, ctx=None):
+        opts = {
+            'format': '249/250/251/webm[abr>0]/bestaudio/best',
+            'quiet': True,
+            'default_search': search,
+        }
 
-def get_info(url, ytdl_opts=None, search=None, retry=True):
-    opts = {
-        'format': '249/250/251/webm[abr>0]/bestaudio/best',
-        'quiet': True,
-        'default_search': search,
-    }
+        if ytdl_opts:
+            opts.update(ytdl_opts)
 
-    if ytdl_opts:
-        opts.update(ytdl_opts)
+        try:
+            ydl = youtube_dl.YoutubeDL(opts)
+            info = ydl.extract_info(url, download=False)
 
-    try:
-        ydl = youtube_dl.YoutubeDL(opts)
-        info = ydl.extract_info(url, download=False)
+            if "entries" in info:
+                info = info['entries'][0]
 
-        if "entries" in info:
-            info = info['entries'][0]
-
-        return info
-    except youtube_dl.DownloadError as e:
-        if not (url.startswith("http://") or url.startswith("https://")) and retry:
-            return get_info(SearchVideos(url, mode="list", max_results=1).result()[0][2], ytdl_opts=ytdl_opts,
-                            search=search, retry=False)
-        raise e
+            return info
+        except youtube_dl.DownloadError as e:
+            if not (url.startswith("http://") or url.startswith("https://")) and retry:
+                return self.get_info(SearchVideos(url, mode="list", max_results=1).result()[0][2], ytdl_opts=ytdl_opts,
+                                     search=search, retry=False)
+            raise e
 
 
 def setup(bot):

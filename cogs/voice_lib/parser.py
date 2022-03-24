@@ -45,8 +45,8 @@ class Buffer:
         # Called by mkvparse
         try:
             return self.raw_packets.read(n)
-        except ConnectionError:
-            print("shit")
+        except ConnectionError as e:
+            raise e
 
 
 # this is a little over-engineered -- we only call self.read() with a fixed value
