@@ -1,12 +1,12 @@
+import ast
 import inspect
+import operator
 import os
 import random
+import sqlite3
 import sys
 import urllib
-import ast
-import operator
 from io import StringIO
-import sqlite3
 
 import discord
 from discord.ext import commands
@@ -22,6 +22,7 @@ ops_list = {
     ast.USub: operator.neg
 }
 
+
 def is_owner(ctx):
     return ctx.author.id in [135496683009081345, 135483608491229184]
 
@@ -31,11 +32,14 @@ def is_admin(ctx):
         return True
     return ctx.author.guild_permissions.manage_guild
 
+
 class MathsInputError(ValueError):
-   pass
+    pass
+
 
 def do_maths(maths):
     parsed = ast.parse(maths, mode='eval')
+
     def math_result(parsed):
         if isinstance(parsed, ast.Expression):
             return math_result(parsed.body)
@@ -51,6 +55,7 @@ def do_maths(maths):
             return ops_list[type(parsed.op)](math_result(parsed.operand))
         else:
             raise MathsInputError(parsed)
+
     return math_result(parsed.body)
 
 
@@ -149,7 +154,7 @@ class Misc:
         lmddgtfy = Let Me Duck Duck Go That For You"""
         query = urllib.parse.quote(' '.join(message))
         await ctx.send("http://lmddgtfy.net/?q=" + query)
-        
+
     @commands.command(name="calculate", aliases=['c'])
     async def calculator(self, ctx, *message):
         """Calculator
@@ -160,8 +165,6 @@ class Misc:
             await ctx.send(result)
         except ValueError:
             await ctx.send("Ow, that hurt my head (or it wasn't maths) - try again")
-            raise
-        
 
     @commands.check(is_owner)
     @commands.command(name="restart", aliases=["getout"], hidden=True)
@@ -234,7 +237,7 @@ class Misc:
         self.bot.unload_extension(cog)
         self.bot.load_extension(cog)
         await ctx.send("done")
-    
+
     @commands.command(name="invites", hidden=True)
     async def invites(self, ctx):
         if len(ctx.message.mentions) == 0:
@@ -258,14 +261,16 @@ class Misc:
             try:
                 uid = int(user)
             except ValueError:
-                return await ctx.send("invalid userid, either put the number or a ping (but dont ping in public channels tho)")
+                return await ctx.send(
+                    "invalid userid, either put the number or a ping (but dont ping in public channels tho)")
         if self.cc.execute("select cookie_count from cookies where uid = ?", (uid,)).fetchall():
             self.cc.execute("update cookies set cookie_count = cookie_count + 1 where uid = ?", (uid,))
         else:
             self.cc.execute("insert into cookies (cookie_count, uid) values (?, ?)", (1, uid))
         self.cdb.commit()
         await ctx.send("cookie awarded")
-        await discord.utils.get(ctx.guild.channels, id=417108128669237259).send("<:blobthumbsup:357267430105677844> {} got a cookie! {}".format(discord.utils.get(ctx.guild.members, id=uid), thanks_message))
+        await discord.utils.get(ctx.guild.channels, id=417108128669237259).send(
+            ";butty-cookie {}".format(discord.utils.get(ctx.guild.members, id=uid).mention))
 
     @commands.command(hidden=True)
     async def cookies(self, ctx, user=None):
@@ -279,7 +284,7 @@ class Misc:
             try:
                 uid = int(user)
             except ValueError:
-                return await ctx.send("invalid user id")         
+                return await ctx.send("invalid user id")
         count = self.cc.execute("select cookie_count from cookies where uid = ?", (uid,)).fetchone()
         if not count:
             return await ctx.send("{} dont have any cookies...".format('they' if user else 'you'))

@@ -1,15 +1,12 @@
-from discord.ext import commands
-import discord
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import parsedatetime.parsedatetime
-from pytz import timezone
-import time
-import sqlite3
 import asyncio
+import sqlite3
+import time
+from datetime import datetime
 
+import parsedatetime.parsedatetime
+from discord.ext import commands
+from pytz import timezone
 
-class Reminders:
 
 
     def __init__(self, bot):
@@ -32,7 +29,6 @@ class Reminders:
                 except:
                     pass
 
-            self.cursor.execute("DELETE FROM alerts WHERE time < ?", (now,))
             self.database.commit()
             await asyncio.sleep(5)
 
@@ -53,13 +49,13 @@ class Reminders:
         alertid = len(self.cursor.execute("SELECT * FROM alerts WHERE user=?", (ctx.author.id,)).fetchall()) + 1
         dontusemodulesasvariablenames = cal.parse(msg[0], datetime.now(timezone('UTC')))
         alert_time = time.strftime('%Y-%m-%d %H:%M:%S', dontusemodulesasvariablenames[0])
-        self.cursor.execute("INSERT INTO alerts VALUES(?, ?, ?, ?, ?, ?)", (ctx.author.id, ctx.channel.id, alert_time, msg[1], "no", alertid))
+        self.cursor.execute("INSERT INTO alerts VALUES(?, ?, ?, ?, ?, ?)",
+                            (ctx.author.id, ctx.channel.id, alert_time, msg[1], "no", alertid))
         self.database.commit()
-        await ctx.send("Reminder set for " +  alert_time + " UTC")
-
+        await ctx.send("Reminder set for " + alert_time + " UTC")
 
     @remindme.command(aliases=['d', 'r'])
-    async def delete(self, ctx, ids : int):
+    async def delete(self, ctx, ids: int):
         moveup = []
         user = ctx.author.id
         removed = (self.cursor.execute("SELECT message FROM alerts WHERE user=? AND id=?", (user, ids))).fetchall()

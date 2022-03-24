@@ -1,9 +1,10 @@
-import sqlite3
-import discord
-from discord.ext import commands
-import shutil
 import gzip
 import os
+import shutil
+import sqlite3
+
+import discord
+from discord.ext import commands
 
 class Logs:
     def __init__(self, bot):
@@ -62,6 +63,8 @@ class Logs:
                 with gzip.open('extras/logs.txt.gz', 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
             await ctx.send("here", file=discord.File("extras/logs.txt.gz", filename="logs.txt.gz"))
+
+
 #            os.remove('extras/logs.txt')
 #            os.remove('extras/logs.txt.gz')
 

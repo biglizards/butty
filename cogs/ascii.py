@@ -1,16 +1,15 @@
-import numpy as np
-import aiohttp
+import asyncio
 import os
 import threading
-import asyncio
 
 import PIL
 import PIL.Image as Image
+import PIL.ImageDraw
 import PIL.ImageFont
 import PIL.ImageOps
-import PIL.ImageDraw
-
+import aiohttp
 import discord
+import numpy as np
 from discord.ext import commands
 
 
