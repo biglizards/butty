@@ -12,7 +12,6 @@ from discord.ext.commands import command
 import cogs.voice_lib.parser as parser
 from .misc import is_admin
 
-
 quips = {"stop": "B-b-but I haven't even got started...",
          "queue": "queue is empty, use [play to play something",
          "remove": "I tried to remove the silence from the queue, but it keeps coming back",
@@ -87,7 +86,6 @@ class Song:
         if time.time() < self.made_at + 10:
             return
 
-        print("refreshing")
         info = get_info(self.page_url)
         self.__init__(info, self.ctx)
 
@@ -208,7 +206,7 @@ class Voice:
     @command("queue", aliases=['q'])
     @requires_voice_client
     async def voice_queue(self, ctx):
-        contents = '\n'.join("{0}: `{1.name}`".format(i+1, song)
+        contents = '\n'.join("{0}: `{1.name}`".format(i + 1, song)
                              for i, song in enumerate(ctx.voice_client.queue))
         if not contents:
             reply = "Queue is empty, use [play to play something"
@@ -246,7 +244,7 @@ class Voice:
         if not is_author(ctx, song):
             return await ctx.send("You didn't put this on; you can't stop someone else's song")
 
-        ctx.voice_client.queue.pop(i-1)
+        ctx.voice_client.queue.pop(i - 1)
         await ctx.send("Removed `{0.name}` from the queue".format(song))
 
     @command("clear")
@@ -275,17 +273,17 @@ class Voice:
     @command("skip")
     @requires_voice_client
     async def voice_skip(self, ctx):
-         song = ctx.voice_client.song
-         votes_needed = math.ceil((len(ctx.voice_client.channel.members)-1)/2)
-         if ctx.author in song.skips:
-             return await ctx.send("`{0.name}` {0.length} added to queue /s".format(song))
-         song.skips.append(ctx.author)
-         if votes_needed <= len(song.skips):
-             await ctx.send("Song has been skipped by {} users".format(len(song.skips)))
-             ctx.voice_client.song.skips = []
-             ctx.voice_client.stop()
-         else:
-             await ctx.send("Voting to skip `{}` ({}/{} votes needed)".format(song.name, len(song.skips), votes_needed))
+        song = ctx.voice_client.song
+        votes_needed = math.ceil((len(ctx.voice_client.channel.members) - 1) / 2)
+        if ctx.author in song.skips:
+            return await ctx.send("`{0.name}` {0.length} added to queue /s".format(song))
+        song.skips.append(ctx.author)
+        if votes_needed <= len(song.skips):
+            await ctx.send("Song has been skipped by {} users".format(len(song.skips)))
+            ctx.voice_client.song.skips = []
+            ctx.voice_client.stop()
+        else:
+            await ctx.send("Voting to skip `{}` ({}/{} votes needed)".format(song.name, len(song.skips), votes_needed))
 
 def get_info(url, ytdl_opts=None, search=None):
     opts = {

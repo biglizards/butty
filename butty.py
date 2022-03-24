@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import logging
 import time
 import traceback
 from collections import defaultdict
 from functools import wraps
-import sqlite3
+from pathlib import Path
 
 import discord
 from discord.ext import commands
@@ -11,6 +12,12 @@ from discord.ext import commands
 import cogs.prefix
 from cogs.misc import is_owner
 
+Path('logs').mkdir(exist_ok=True)
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='logs/discord.{}.log'.format(int(time.time())), encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 # note that isinstance(ctx.guild.me, discord.user.User) == False
 # i don't know why you would care about that
@@ -79,7 +86,7 @@ async def on_command_error(context, exception):
     channel = discord.utils.get(bot.get_all_channels(), id=332200389074223105)  # TODO change back to old error channel
 
     await channel.send(tb)
-    await context.send("An unhandled error occured! Tell stalin to check the logs (unless you're just being dumb)")
+    await context.send("An unhandled error occured! Big sad :( Tell an admin to check the logs (unless you're just being dumb)")
 
 
 @bot.event

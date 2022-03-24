@@ -12,13 +12,11 @@ class Prefix:
 
         self.c.execute('''CREATE TABLE IF NOT EXISTS prefixes
                           (id text, prefix text)''')
-        self.prefixes = {165800036557520896: 'alexa '}
+        self.prefixes = {165800036557520896: 'alexa ', 687323686331482115: 'alexa '}
         for server, prefix in self.c.execute("SELECT * FROM prefixes").fetchall():
             self.prefixes[server] = prefix
 
     def get_prefix(self, bot, message, check_db=False):
-        print("get prefix called")
-
         # if it's a pm: return '['
         # if '@butty ' is at the start of the message, return '@butty ' (note the space)
         # else get prefix from db (or cache)
@@ -48,9 +46,11 @@ class Prefix:
         if prefix != self.prefixes.get(message.guild.id):
             self.prefixes[message.guild.id] = prefix
 
-        print("prefix", prefix)
+        # print("prefix", prefix)
         return prefix
         # TODO i'm sure you can make this look nicer
         # maybe replace guild.id with guild (i think it would work)
+
+
 def setup(bot):
-   bot.command_prefix = Prefix().get_prefix
+    bot.command_prefix = Prefix().get_prefix
