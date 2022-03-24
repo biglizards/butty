@@ -7,6 +7,11 @@ import discord
 
 import cogs.voice_lib.mkvparse as mkvparse
 
+import logging
+
+# dumb buffer stuff
+import io, queue, subprocess
+
 
 class Handler(mkvparse.MatroskaHandler):
     def __init__(self, packet_buffer):
@@ -44,6 +49,71 @@ class Buffer:
             print("shit")
 
 
+class StreamBuffer(io.BufferedIOBase):
+    def __init__(self, file, *args, **kwargs):
+        super(StreamBuffer, self).__init__(*args, **kwargs)
+
+        self.CHUNK_SIZE = 1024 * 64
+        self.MAX_QUEUE_SIZE = 160  # 10 MiB max per buffer
+
+        self.file = file
+        self.finished_downloading = False
+        self.current_buffer = io.BytesIO()
+        self.buffers = queue.Queue(self.MAX_QUEUE_SIZE)
+
+        self.downloader = threading.Thread(target=self.top_up_buffers, args=())
+        self.downloader.daemon = True
+        self.downloader.start()
+
+    def read(self, size=-1):
+        if size is None or size < 0:
+            size = float('inf')
+        total = 0
+        data = []
+        size_remaining = size if isinstance(size, int) else -1
+        while total < size:
+            x = self.current_buffer.read(size_remaining)
+            total += len(x)
+            size_remaining -= len(x)
+            data.append(x)
+            if len(x) == 0:
+                while True:
+                    try:
+                        self.current_buffer = self.buffers.get(timeout=0.2)
+                        break
+                    except queue.Empty:
+                        if self.finished_downloading:
+                            return b''.join(data)
+        return b''.join(data)
+
+    def top_up_buffers(self):
+        while not self.finished_downloading:
+            data = self.file.read(self.CHUNK_SIZE)
+            if data == b'':
+                self.finished_downloading = True
+                break
+            self.buffers.put(io.BytesIO(data))
+            print("added to buffer!", self.buffers.qsize())
+        logging.info("finished downloading")
+
+    def fileno(self) -> int:
+        raise OSError()
+
+    def register_sink(self, stdin):
+        self.sink = threading.Thread(target=self._register_sink, args=(stdin,))
+        self.sink.daemon = True
+        self.sink.start()
+
+    def _register_sink(self, stdin):
+        while True:
+            data = self.read(self.CHUNK_SIZE)
+            if data == b'':
+                logging.info("Finished playing song")
+                stdin.close()
+                break
+            stdin.write(data)
+
+
 class Source(discord.AudioSource):
     def __init__(self, file, song=None, buffer=Buffer):
         self.buffer = buffer(file)
@@ -62,11 +132,15 @@ class Source(discord.AudioSource):
         return True
 
 
-def get_source(song):
+def get_source(song, use_opus=True):
     song.refresh_info()
 
-    if song.codec != 'opus':
-        source = discord.FFmpegPCMAudio(song.media_url)
+    if song.codec != 'opus' or not use_opus:
+        buf = StreamBuffer(urllib.request.urlopen(song.media_url))
+        while buf.buffers.empty() and not buf.finished_downloading:
+            time.sleep(0.1)
+        source = discord.FFmpegPCMAudio(subprocess.PIPE, pipe=True)
+        buf.register_sink(source._process.stdin)
     else:
         file = urllib.request.urlopen(song.media_url)
         source = Source(file, song)
