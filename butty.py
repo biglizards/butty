@@ -110,7 +110,10 @@ async def on_ready():
 @commands.check(is_owner)
 @bot.command(name="reload", hidden=True)
 async def reload_cog(ctx, cog):
-    bot.unload_extension(cog)
+    try:
+        bot.unload_extension(cog)
+    except:
+        pass
     bot.load_extension(cog)
     await ctx.send("done")
 

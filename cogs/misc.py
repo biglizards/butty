@@ -19,7 +19,8 @@ ops_list = {
     ast.Mult: operator.mul,
     ast.Div: operator.truediv,
     ast.UAdd: operator.abs,
-    ast.USub: operator.neg
+    ast.USub: operator.neg,
+    ast.Pow: operator.pow,
 }
 
 
@@ -140,6 +141,11 @@ class Misc(commands.Cog):
         else:
             await ctx.send("The side limit is 100000000000 and the dice limit is 10")
 
+    @commands.command(name="dice", aliases=['d'])
+    async def misc_dice(self, ctx, dice_str):
+        n, sides = map(lambda x: int(x.strip()), dice_str.split('d'))
+        await ctx.send('`' + ', '.join(str(random.randint(1, sides)) for _ in range(n)) + '`')
+
     @commands.command(name="say")
     async def misc_say(self, ctx, *message):
         if is_admin(ctx):
@@ -168,8 +174,8 @@ class Misc(commands.Cog):
 
     @commands.check(is_owner)
     @commands.command(name="restart", aliases=["getout"], hidden=True)
-    async def misc_restart(self):
-        os.system("git pull && systemctl restart butty")
+    async def misc_restart(self, ctx):
+        await ctx.send(os.popen("systemctl restart butty").read())
 
     @commands.check(is_owner)
     @commands.command(name="presence", aliases=["statuschange"], hidden=True, pass_context=False)
@@ -253,7 +259,9 @@ class Misc(commands.Cog):
 
     @commands.command(hidden=True)
     async def cookie(self, ctx, user, thanks_message="thanks for helping someone out"):
-        if ctx.guild.id != 204621105720328193 or not ctx.author.guild_permissions.ban_members:
+        if ctx.guild.id != 204621105720328193 or not (
+                ctx.author.guild_permissions.ban_members or discord.utils.get(ctx.author.roles,
+                                                                              name='Raspberry') in ctx.author.roles):
             return
         if ctx.message.mentions:
             uid = ctx.message.mentions[0].id
@@ -289,6 +297,26 @@ class Misc(commands.Cog):
         if not count:
             return await ctx.send("{} dont have any cookies...".format('they' if user else 'you'))
         await ctx.send("{} have {} cookies, gz".format('they' if user else 'you', count[0]))
+
+    @commands.command(hidden=True)
+    async def award_cookies(self, ctx):
+        if ctx.author.id != 135483608491229184: return
+        all_cookies = self.cc.execute("select uid, cookie_count from cookies").fetchall()
+        for uid, cookie_count in all_cookies:
+            if uid and cookie_count and discord.utils.get(ctx.guild.members, id=uid):
+                await discord.utils.get(ctx.guild.channels, id=417108128669237259).send(
+                    ";butty-cookie {} {}".format(discord.utils.get(ctx.guild.members, id=uid).mention, cookie_count))
+
+    @commands.command(hidden=True)
+    async def list_new_joins(self, ctx, limit=100):
+        l = []
+        i = 0
+        async for message in ctx.channel.history():
+            i += 1
+            if message.type == discord.MessageType.new_member: l.append(message.author.id)
+            if i > limit: break
+        await ctx.send(' '.join(str(ll) for ll in l) or 'no recent joins found')
+
 
 def setup(bot):
     bot.add_cog(Misc(bot))
