@@ -49,12 +49,14 @@ class Buffer:
             print("shit")
 
 
+# this is a little over-engineered -- we only call self.read() with a fixed value
+# so a lot about this could be simplified if it turns out to be a performance problem
 class StreamBuffer(io.BufferedIOBase):
     def __init__(self, file, *args, **kwargs):
         super(StreamBuffer, self).__init__(*args, **kwargs)
 
-        self.CHUNK_SIZE = 1024 * 64
-        self.MAX_QUEUE_SIZE = 160  # 10 MiB max per buffer
+        self.CHUNK_SIZE = 1024 * 16
+        self.MAX_QUEUE_SIZE = 160 * 4  # 10 MiB max per buffer
 
         self.file = file
         self.finished_downloading = False
@@ -93,7 +95,6 @@ class StreamBuffer(io.BufferedIOBase):
                 self.finished_downloading = True
                 break
             self.buffers.put(io.BytesIO(data))
-            print("added to buffer!", self.buffers.qsize())
         logging.info("finished downloading")
 
     def fileno(self) -> int:
@@ -137,8 +138,12 @@ def get_source(song, use_opus=True):
 
     if song.codec != 'opus' or not use_opus:
         buf = StreamBuffer(urllib.request.urlopen(song.media_url))
+
+        # wait until buffer is non-empty (takes about a second)
+        # if we don't do this, discord glitches and the first few seconds are sped up
         while buf.buffers.empty() and not buf.finished_downloading:
             time.sleep(0.1)
+
         source = discord.FFmpegPCMAudio(subprocess.PIPE, pipe=True)
         buf.register_sink(source._process.stdin)
     else:
