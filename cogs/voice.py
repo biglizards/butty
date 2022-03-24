@@ -9,6 +9,7 @@ import discord
 import discord.ext.commands as commands
 import youtube_dl
 from discord.ext.commands import command
+from youtubesearchpython import SearchVideos
 
 import cogs.voice_lib.parser as parser
 from .misc import is_admin
@@ -73,7 +74,7 @@ class Song:
         if not duration:
             return ""
 
-        m, s = divmod(duration, 60)
+        m, s = divmod(int(duration), 60)
         h, m = divmod(m, 60)
 
         if h:
@@ -109,6 +110,8 @@ class Voice(commands.Cog):
         ctx.voice_client.looping = False
         ctx.voice_client.song = None
         ctx.voice_client.ready = True
+        ctx.voice_client.use_opus = True  # allow opus? when false, forces transcoding.
+        # previously ctx.guild.id != 165800036557520896
 
     @staticmethod
     def get_next_in_queue(voice_client, pop=False):
@@ -130,7 +133,7 @@ class Voice(commands.Cog):
     async def play_next_in_queue(self, voice_client):
         next_song = self.get_next_in_queue(voice_client, pop=True)
         try:
-            source = await self.bot.loop.run_in_executor(None, parser.get_source, next_song)
+            source = await self.bot.loop.run_in_executor(None, parser.get_source, next_song, voice_client.use_opus)
         except ConnectionError:
             await next_song.ctx.channel.send("I couldn't play `{}`, sorry\n"
                                              "If you think this is a bug, feel free to report it"
@@ -150,8 +153,9 @@ class Voice(commands.Cog):
             try:
                 song = await self.play_next_in_queue(ctx.voice_client)
                 await ctx.send('Now playing: `{0.name}` {0.length}'.format(song))
-            except ConnectionError:
-                pass
+            except ConnectionError as e:
+                print("what", e)
+                traceback.print_exc()
             except Exception as e:
                 print("ok this REALLY should never happen", e)
                 traceback.print_exc()
@@ -172,8 +176,14 @@ class Voice(commands.Cog):
             return
 
         async with ctx.typing():
-            info = await self.bot.loop.run_in_executor(None, lambda: get_info(song_name, search="auto"))
-            song = Song(info, ctx)
+            try:
+                info = await self.bot.loop.run_in_executor(None, lambda: get_info(song_name, search="auto"))
+                song = Song(info, ctx)
+            except Exception as e:
+                raise e
+                await ctx.send(
+                    "Unable to get url (YouTube search is broken right now, but links still work. Should be fixed soon :fingers_crossed:)")
+                return
 
         self.start_queue_loop(ctx)
 
@@ -198,7 +208,10 @@ class Voice(commands.Cog):
             try:
                 song = ctx.voice_client.source.song
             except AttributeError:
-                return  # it actually wasn't playing (thanks d.py)
+                try:
+                    song = ctx.voice_client.song
+                except AttributeError:
+                    return  # it actually wasn't playing (thanks d.py)
             reply = "Currently playing: `{0.name}` {0.length}".format(song)
             if ctx.voice_client.looping:
                 reply += " on loop"
@@ -286,7 +299,8 @@ class Voice(commands.Cog):
         else:
             await ctx.send("Voting to skip `{}` ({}/{} votes needed)".format(song.name, len(song.skips), votes_needed))
 
-def get_info(url, ytdl_opts=None, search=None):
+
+def get_info(url, ytdl_opts=None, search=None, retry=True):
     opts = {
         'format': '249/250/251/webm[abr>0]/bestaudio/best',
         'quiet': True,
@@ -296,13 +310,19 @@ def get_info(url, ytdl_opts=None, search=None):
     if ytdl_opts:
         opts.update(ytdl_opts)
 
-    ydl = youtube_dl.YoutubeDL(opts)
-    info = ydl.extract_info(url, download=False)
+    try:
+        ydl = youtube_dl.YoutubeDL(opts)
+        info = ydl.extract_info(url, download=False)
 
-    if "entries" in info:
-        info = info['entries'][0]
+        if "entries" in info:
+            info = info['entries'][0]
 
-    return info
+        return info
+    except youtube_dl.DownloadError as e:
+        if not (url.startswith("http://") or url.startswith("https://")) and retry:
+            return get_info(SearchVideos(url, mode="list", max_results=1).result()[0][2], ytdl_opts=ytdl_opts,
+                            search=search, retry=False)
+        raise e
 
 
 def setup(bot):
