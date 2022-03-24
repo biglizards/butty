@@ -96,7 +96,7 @@ async def on_ready():
     print(bot.user.id)
     print('------')
 
-    await bot.change_presence(game=discord.Game(name='[help for help'))
+    await bot.change_presence(activity=discord.Game(name='[help for help'))
 
     for extension in startup_extensions:
         try:

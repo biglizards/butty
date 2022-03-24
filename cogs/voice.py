@@ -6,6 +6,7 @@ import traceback
 from functools import wraps
 
 import discord
+import discord.ext.commands as commands
 import youtube_dl
 from discord.ext.commands import command
 
@@ -90,7 +91,7 @@ class Song:
         self.__init__(info, self.ctx)
 
 
-class Voice:
+class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 

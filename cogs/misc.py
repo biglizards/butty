@@ -59,7 +59,7 @@ def do_maths(maths):
     return math_result(parsed.body)
 
 
-class Misc:
+class Misc(commands.Cog):
     def __init__(self, bot_):
         self.bot = bot_
         self.prefix = prefix.Prefix()

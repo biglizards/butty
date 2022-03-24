@@ -13,7 +13,7 @@ import numpy as np
 from discord.ext import commands
 
 
-class Ascii:
+class Ascii(commands.Cog):
     def __init__(self, bot_):
         self.bot = bot_
         self.gsarray = np.asarray(list(' .:-=+*#%@'))
@@ -27,14 +27,14 @@ class Ascii:
             try:
                 url = ctx.message.attachments[0].url
             except IndexError:
-                await self.bot.say("Okay first of all you need to give me an image")
+                await ctx.send("Okay first of all you need to give me an image")
                 return
         elif url[0] == "<" and url[-1] == ">":
             url = url[1:-1]
 
         filename = "pictures/{}".format(ctx.message.id)
 
-        with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session:
             with open(filename, 'wb') as f:
                 r = await session.get(url)
                 f.write(await r.read())

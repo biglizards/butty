@@ -8,7 +8,7 @@ from discord.ext import commands
 from pytz import timezone
 
 
-
+class Reminders(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.database = sqlite3.connect("cogs/reminders.db")
