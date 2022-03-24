@@ -19,7 +19,7 @@ class Handler(mkvparse.MatroskaHandler):
 
     # dispatched for each frame by mkvparse
     def frame(self, track_id, timestamp, data, more_laced_frames, duration, keyframe, invisible, discardable):
-        while len(self.packet_buffer) > 5000:
+        while len(self.packet_buffer) > 10000:
             time.sleep(1)  # block until packet buffer size is reduced
         self.packet_buffer.append(data)
 

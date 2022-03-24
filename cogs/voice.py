@@ -113,8 +113,8 @@ class Voice(commands.Cog):
         ctx.voice_client.looping = False
         ctx.voice_client.song = None
         ctx.voice_client.ready = True
-        ctx.voice_client.use_opus = True  # allow opus? when false, forces transcoding.
-        # previously ctx.guild.id != 165800036557520896
+        ctx.voice_client.use_opus = ctx.guild.id != 165800036557520896
+        # allow opus? when false, forces transcoding.
 
     @staticmethod
     def get_next_in_queue(voice_client, pop=False):
