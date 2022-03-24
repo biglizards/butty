@@ -11,6 +11,7 @@ from discord.ext import commands
 
 import cogs.prefix
 from cogs.misc import is_owner
+from error import send_error_log
 
 Path('logs').mkdir(exist_ok=True)
 logger = logging.getLogger('discord')
@@ -18,6 +19,7 @@ logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='logs/discord.{}.log'.format(int(time.time())), encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
+
 
 # note that isinstance(ctx.guild.me, discord.user.User) == False
 # i don't know why you would care about that
@@ -31,11 +33,13 @@ def event(self, coro):
         for command in func:
             await command(*args, **kwargs)
         await coro(*args, **kwargs)
+
     return self.event_dec(wrapper)
 
 
 def secret(self, func):
     self.secrets[func.__name__].append(func)
+
 
 commands.Bot.event_dec = commands.Bot.event
 commands.Bot.secret = secret
@@ -53,28 +57,13 @@ bot.secrets = defaultdict(list)
 
 # add cogs here after putting them in cogs folder (format cogs.<name> of file without extension>)
 startup_extensions = ["cogs.voice", "cogs.misc", "cogs.secret", "cogs.reminders", "cogs.ascii"]
+
+
 # TODO: remove cogs.secret from startup?
 # I don't want any differences between git and live version
 
-
-def get_traceback_from_exception(exception, message):
-    tb = ''.join(traceback.format_exception(etype=type(exception),
-                                            value=exception,
-                                            tb=exception.__traceback__))
-
-    if message.guild:
-        location = "**{0.name}** ({0.id})".format(message.guild)
-    else:
-        location = "DM"
-
-    header = "COMMAND **{}** IN {}\n".format(message.content, location)
-    error = "```py\n{}```".format(tb[len(header)-1988:])
-    return header + error
-
-
 @bot.event
 async def on_command_error(context, exception):
-    print("oh no an error", exception)
     if type(exception) == discord.ext.commands.errors.CommandNotFound:
         return
 
@@ -82,11 +71,8 @@ async def on_command_error(context, exception):
         await context.send("Sorry, this command is admin only. Try asking someone with manage server perms")
         return
 
-    tb = get_traceback_from_exception(exception, context.message)
-    channel = discord.utils.get(bot.get_all_channels(), id=332200389074223105)  # TODO change back to old error channel
+    await send_error_log(context, exception, bot)
 
-    await channel.send(tb)
-    await context.send("An unhandled error occured! Big sad :( Tell an admin to check the logs (unless you're just being dumb)")
 
 
 @bot.event
@@ -116,6 +102,7 @@ async def reload_cog(ctx, cog):
         pass
     bot.load_extension(cog)
     await ctx.send("done")
+
 
 try:
     with open("extras/token", 'r') as Token:
