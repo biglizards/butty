@@ -21,11 +21,20 @@ class Reminders(commands.Cog):
         while not self.bot.is_closed():
             now = datetime.now(timezone('UTC'))
             now = format(now, '%Y-%m-%d %H:%M:%S')
-            alerts = self.cursor.execute("SELECT user, channel, message FROM alerts WHERE time < ?", (now,)).fetchall()
+            alerts = self.cursor.execute("SELECT user, channel, message, id FROM alerts WHERE time < ?",
+                                         (now,)).fetchall()
 
-            for user_id, channel, message in alerts:
+            for user_id, channel, message, index in alerts:
                 try:
                     await self.bot.get_channel(channel).send("<@{}> {}".format(user_id, message))
+                    self.cursor.execute("DELETE FROM alerts WHERE time < ? AND id=?", (now, index))
+                    tofix = self.cursor.execute("SELECT * FROM alerts WHERE user=?", (user_id,)).fetchall()
+                    self.cursor.execute("DELETE FROM alerts WHERE user=?", (user_id,))
+                    for x, alert in enumerate(tofix):
+                        self.cursor.execute("INSERT INTO alerts VALUES(?, ?, ?, ?, ?, ?)",
+                                            (user_id, alert[1], alert[2], alert[3], alert[4], x))
+                    self.database.commit()
+
                 except:
                     pass
 
@@ -46,7 +55,7 @@ class Reminders(commands.Cog):
     async def add(self, ctx, *args):
         msg = " ".join(args).split(", ", 1)
         cal = parsedatetime.Calendar()
-        alertid = len(self.cursor.execute("SELECT * FROM alerts WHERE user=?", (ctx.author.id,)).fetchall()) + 1
+        alertid = len(self.cursor.execute("SELECT * FROM alerts WHERE user=?", (ctx.author.id,)).fetchall())
         dontusemodulesasvariablenames = cal.parse(msg[0], datetime.now(timezone('UTC')))
         alert_time = time.strftime('%Y-%m-%d %H:%M:%S', dontusemodulesasvariablenames[0])
         self.cursor.execute("INSERT INTO alerts VALUES(?, ?, ?, ?, ?, ?)",
@@ -57,15 +66,14 @@ class Reminders(commands.Cog):
     @remindme.command(aliases=['d', 'r'])
     async def delete(self, ctx, ids: int):
         moveup = []
-        user = ctx.author.id
-        removed = (self.cursor.execute("SELECT message FROM alerts WHERE user=? AND id=?", (user, ids))).fetchall()
-        self.cursor.execute("DELETE FROM alerts WHERE user=? AND id=?", (user, ids))
-        newid = (self.cursor.execute("SELECT id FROM alerts WHERE user=?", (user,))).fetchall()
-        for x in range(0, len(newid)):
-            if newid[x][0] > ids:
-                moveup.append(newid[x][0])
-        for x in range(0, len(moveup)):
-            self.cursor.execute("UPDATE alerts SET id=? WHERE id=? AND user=?", ((moveup[x] - 1), moveup[x], user))
+        user_id = ctx.author.id
+        removed = self.cursor.execute("SELECT message FROM alerts WHERE user=? AND id=?", (user_id, ids)).fetchall()
+        self.cursor.execute("DELETE FROM alerts WHERE user=? AND id=?", (user_id, ids))
+        tofix = self.cursor.execute("SELECT * FROM alerts WHERE user=?", (user_id,)).fetchall()
+        self.cursor.execute("DELETE FROM alerts WHERE user=?", (user_id,))
+        for x, alert in enumerate(tofix):
+            self.cursor.execute("INSERT INTO alerts VALUES(?, ?, ?, ?, ?, ?)",
+                                (user_id, alert[1], alert[2], alert[3], alert[4], x))
         self.database.commit()
         await ctx.send("Deleted **" + removed[0][0] + "** from your reminder list")
 
@@ -77,12 +85,10 @@ class Reminders(commands.Cog):
 
     @remindme.command(aliases=['s'])
     async def show(self, ctx):
-        reminder_list = self.cursor.execute("SELECT message FROM alerts WHERE user=?", (ctx.author.id,)).fetchall()
-        x = 0
+        reminder_list = self.cursor.execute("SELECT message, id FROM alerts WHERE user=?", (ctx.author.id,)).fetchall()
         reply = ''
         for reminder in reminder_list:
-            x += 1
-            reply += "{}: {}\n".format(x, reminder[0])
+            reply += "{}: {}\n".format(reminder[1], reminder[0])
         await ctx.send("<@{}>'s reminders:\n{}".format(ctx.author.id, reply))
 
 
