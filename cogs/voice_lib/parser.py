@@ -55,8 +55,8 @@ class StreamBuffer(io.BufferedIOBase):
     def __init__(self, file, *args, **kwargs):
         super(StreamBuffer, self).__init__(*args, **kwargs)
 
-        self.CHUNK_SIZE = 1024 * 16
-        self.MAX_QUEUE_SIZE = 160 * 4  # 10 MiB max per buffer
+        self.CHUNK_SIZE = 1024 * 8
+        self.MAX_QUEUE_SIZE = 160 * 8  # 10 MiB max per buffer
 
         self.file = file
         self.finished_downloading = False
@@ -100,19 +100,24 @@ class StreamBuffer(io.BufferedIOBase):
     def fileno(self) -> int:
         raise OSError()
 
-    def register_sink(self, stdin):
-        self.sink = threading.Thread(target=self._register_sink, args=(stdin,))
-        self.sink.daemon = True
-        self.sink.start()
 
-    def _register_sink(self, stdin):
-        while True:
-            data = self.read(self.CHUNK_SIZE)
+# we subclass this because it fucks up the buffering otherwise
+# specifically, it ends the process when we stop _reading_ data, instead of when ffmpeg actually finishes
+class FFmpegPCMAudio(discord.FFmpegPCMAudio):
+    def _pipe_writer(self, source: StreamBuffer) -> None:
+        while self._process:
+            data = source.read(source.CHUNK_SIZE)
             if data == b'':
                 logging.info("Finished playing song")
-                stdin.close()
+                self._stdin.close()
                 break
-            stdin.write(data)
+            try:
+                self._stdin.write(data)
+            except AttributeError:
+                return
+            except Exception:
+                self._process.terminate()
+                return
 
 
 class Source(discord.AudioSource):
@@ -134,8 +139,19 @@ class Source(discord.AudioSource):
 
 
 def get_source(song, use_opus=True):
-    song.refresh_info()
+    for _ in range(20):
+        song.refresh_info()
 
+        try:
+            return try_get_source(song, use_opus)
+        except urllib.error.HTTPError as e:
+            if e.code == 403:  # forbidden -- this seems to happen if it think's we're a bot? idk. try again
+                time.sleep(0.5)
+            else:
+                raise e
+
+
+def try_get_source(song, use_opus):
     if song.codec != 'opus' or not use_opus:
         buf = StreamBuffer(urllib.request.urlopen(song.media_url))
 
@@ -144,9 +160,9 @@ def get_source(song, use_opus=True):
         while buf.buffers.empty() and not buf.finished_downloading:
             time.sleep(0.1)
 
-        source = discord.FFmpegPCMAudio(subprocess.PIPE, pipe=True)
-        buf.register_sink(source._process.stdin)
+        source = FFmpegPCMAudio(buf, pipe=True)
     else:
+        # weird thing -- sometimes we just forget
         file = urllib.request.urlopen(song.media_url)
         source = Source(file, song)
     return source
