@@ -147,6 +147,7 @@ def get_source(song, use_opus=True):
         except urllib.error.HTTPError as e:
             if e.code == 403:  # forbidden -- this seems to happen if it think's we're a bot? idk. try again
                 time.sleep(0.5)
+                use_opus = not use_opus  # just jiggle it about, maybe it'll start working eventually
             else:
                 raise e
 
