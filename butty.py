@@ -48,8 +48,9 @@ commands.Bot.event = event
 # begin main butty
 prefix = cogs.prefix.Prefix()
 
+intent = discord.Intents.all()
 description = '''Butty. All you need, and more, less some things you need'''
-bot = commands.Bot(command_prefix=prefix.get_prefix, description=description)
+bot = commands.Bot(command_prefix=prefix.get_prefix, description=description, intents=intent)
 
 bot.voice_reload_cache = None
 bot.startup_time = time.time()
@@ -74,6 +75,10 @@ async def on_command_error(context, exception):
     await send_error_log(context, exception, bot)
 
 
+@bot.event
+async def on_connect():
+    pass
+
 
 @bot.event
 async def on_ready():
@@ -82,7 +87,7 @@ async def on_ready():
     print(bot.user.id)
     print('------')
 
-    await bot.change_presence(activity=discord.Game(name='[help for help'))
+    await bot.change_presence(activity=discord.Game(name='loading...'))
 
     for extension in startup_extensions:
         try:
@@ -90,6 +95,15 @@ async def on_ready():
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n  {}'.format(extension, exc))
+
+    print('pending:', bot.pending_application_commands)
+    try:
+        await bot.sync_commands(force=False)
+    except discord.errors.HTTPException:
+        # i think this might happen on timeout?
+        print('error during load:', bot.pending_application_commands)
+    print('LOAD FINISHED')
+    await bot.change_presence(activity=discord.Game(name='there is no help command, sorry'))
 
 
 # defined here so it can't be accidentally unloaded
@@ -101,6 +115,7 @@ async def reload_cog(ctx, cog):
     except:
         pass
     bot.load_extension(cog)
+    await bot.sync_commands()
     await ctx.send("done")
 
 

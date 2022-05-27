@@ -12,27 +12,29 @@ import discord
 import numpy as np
 from discord.ext import commands
 
+from cogs.misc import slash_command
+
 
 class Ascii(commands.Cog):
     def __init__(self, bot_):
         self.bot = bot_
         self.gsarray = np.asarray(list(' .:-=+*#%@'))
 
-    @commands.command(name="ascii")
-    async def ascii(self, ctx, width: int, url: str = None):
-        """
-        give it a url or an image and make it a shockingly bad ascii image
-        """
+    @slash_command(name='ascii')
+    async def ascii(self, ctx, width: int, url: str):
+        """give it a url or an image and make it a shockingly bad ascii image"""
         if not url:
             try:
                 url = ctx.message.attachments[0].url
             except IndexError:
-                await ctx.send("Okay first of all you need to give me an image")
+                await ctx.respond('Okay first of all you need to give me an image')
                 return
-        elif url[0] == "<" and url[-1] == ">":
+        elif url[0] == '<' and url[-1] == '>':
             url = url[1:-1]
 
-        filename = "pictures/{}".format(ctx.message.id)
+        reply = await ctx.respond('<a:loading:957285111118843984>')
+
+        filename = f'pictures/{reply.id}'
 
         async with aiohttp.ClientSession() as session:
             with open(filename, 'wb') as f:
@@ -48,15 +50,13 @@ class Ascii(commands.Cog):
             await asyncio.sleep(0.5)
 
         ascii_image = ascii_image[0]
-        txtfilename = "{}.txt".format(filename)
-        with open(txtfilename, "w") as f:
+        txtfilename = f'{filename}.txt'
+        with open(txtfilename, 'w') as f:
             f.write(ascii_image)
 
         try:
-            await ctx.send("```{}```".format(ascii_image))
-
+            await reply.edit_original_message(content=f'```{ascii_image}```')
         except discord.errors.HTTPException:
-
             new_image = []
 
             t = threading.Thread(target=text_image, args=(txtfilename, new_image))
@@ -68,18 +68,21 @@ class Ascii(commands.Cog):
             width, height = new_image[0].size[0], new_image[0].size[1]
 
             if width < 10000 and height < 10000:
-                pngfilename = "{}.png".format(filename)
+                pngfilename = f'{filename}.png'
                 new_image[0].save(pngfilename)
                 filebois = [
                     discord.File(pngfilename, pngfilename),
                     discord.File(txtfilename, txtfilename)
                 ]
-                await ctx.send("That had too many characters; here it is in image form", files=filebois)
+                await reply.edit_original_message(content='That had too many characters; here it is in image form',
+                                                  files=filebois)
                 os.remove(pngfilename)
 
             else:
-                await ctx.send("You madman, that file was over 10000 pixels tall/wide. I couldn't embed the image.",
-                               file=discord.File(txtfilename, txtfilename))
+                await reply.edit_original_message(
+                    content="You madman, that file was over 10000 pixels tall/wide. I couldn't embed the image",
+                    file=discord.File(txtfilename, txtfilename)
+                )
 
         os.remove(txtfilename)
         os.remove(filename)
@@ -95,7 +98,7 @@ class Ascii(commands.Cog):
         image = np.sum(np.asarray(image.resize(newsize)), axis=2)
         image -= image.min()
         image = (1.0 - image / image.max()) * (self.gsarray.size - 1)
-        ascii_image.append("\n".join("".join(r) for r in self.gsarray[image.astype(int)]))
+        ascii_image.append('\n'.join(''.join(r) for r in self.gsarray[image.astype(int)]))
 
 
 def text_image(text_path, ascii_image):

@@ -38,6 +38,15 @@ class MathsInputError(ValueError):
     pass
 
 
+def slash_command(*args, **kwargs):
+    if len(args) == 1:
+        kwargs['name'] = args[0]
+    elif len(args) > 1:
+        raise ValueError('too many positional arguments!')
+
+    return commands.slash_command(**kwargs)
+
+
 def do_maths(maths):
     parsed = ast.parse(maths, mode='eval')
 
@@ -74,120 +83,120 @@ class Misc(commands.Cog):
             return True
         return False
 
-    @commands.command(name="stats", hidden=True)
+    @slash_command("stats", hidden=True)
     async def misc_stats(self, ctx):
         """Shows how many guilds butty's in, and how many people are in those guilds"""
         total = 0
         for guild in self.bot.guilds:
             total += len(guild.members)
-        await ctx.send("I am currently being a sandwich in {} guilds, feeding {} users".format(
+        await ctx.respond("I am currently being a sandwich in {} guilds, feeding {} users".format(
             len(self.bot.guilds), total))
 
     @commands.check(is_owner)
-    @commands.command(name="oinvite", hidden=True)
+    @slash_command("oinvite", hidden=True)
     async def misc_other_invite(self, ctx, name):
         guild = discord.utils.get(self.bot.guilds, name=name)
         if not guild:
             return
-        await ctx.send(len(guild.members))
-        await ctx.send(await guild.create_invite())
+        await ctx.respond(len(guild.members))
+        await ctx.respond(await guild.create_invite())
 
-    @commands.command(name="invite")
+    @slash_command("invite")
     async def misc_invite(self, ctx):
         """Show's Butty's invite link
 
          Just in case you want to add it to your guild"""
-        await ctx.send("https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions="
-                       "3271713")
+        await ctx.respond("https://discordapp.com/oauth2/authorize?client_id=229223616217088001&scope=bot&permissions="
+                          "3271713")
 
     @commands.check(is_admin)
-    @commands.command(name="clean", aliases=['purge'])
+    @slash_command("clean", aliases=['purge'])
     async def misc_clean(self, ctx, number: int = 0):
         """<limit>  -  removes butty's commands and spam
 
         Removes any messages sent by butty, as well as any
         messages starting with butty's command prefix. 200 message limit"""
         if number == 0:
-            await ctx.send("You need to set a limit, I can't just remove everything")
+            await ctx.respond("You need to set a limit, I can't just remove everything")
             return None
         elif number > 200:
-            await ctx.send("That's too many, calm down")
+            await ctx.respond("That's too many, calm down")
             return None
 
         await ctx.channel.purge(limit=number, check=self.should_remove)
 
-    @commands.command(name="flip")
+    @slash_command("flip")
     async def misc_flip(self, ctx):
         """Flip a coin
 
         For, you know, picking something randomly
         (as long as there's only two things to choose from)"""
 
-        await ctx.send("\\*flips coin* ... {}!".format(random.choice(['Heads', 'Tails'])))
+        await ctx.respond("\\*flips coin* ... {}!".format(random.choice(['Heads', 'Tails'])))
 
-    @commands.command(name="roll")
+    @slash_command("roll")
     async def misc_roll(self, ctx, number_of_dice: int, number_of_sides: int):
         """<x> <y>  -  where x and y are integers, rolls x dice with y sides
 
         Rolls some dice, for when just two choices aren't enough"""
         diceno = "```\n"
         if number_of_sides <= 0 or number_of_dice <= 0:
-            await ctx.send("Number of sides and number of dice must be greater than 0")
+            await ctx.respond("Number of sides and number of dice must be greater than 0")
             return
         if not number_of_sides > 100000000000 and not number_of_dice > 10:
             for x in range(0, number_of_dice):
                 diceno += "For dice {0: <2} you rolled {1}\n".format(x + 1, random.randint(1, number_of_sides))
-            await ctx.send(diceno + '```')
+            await ctx.respond(diceno + '```')
         else:
-            await ctx.send("The side limit is 100000000000 and the dice limit is 10")
+            await ctx.respond("The side limit is 100000000000 and the dice limit is 10")
 
-    @commands.command(name="dice", aliases=['d'])
+    @slash_command("dice", aliases=['d'])
     async def misc_dice(self, ctx, dice_str):
         n, sides = map(lambda x: int(x.strip()), dice_str.split('d'))
-        await ctx.send('`' + ', '.join(str(random.randint(1, sides)) for _ in range(n)) + '`')
+        await ctx.respond('`' + ', '.join(str(random.randint(1, sides)) for _ in range(n)) + '`')
 
-    @commands.command(name="say")
+    @slash_command("say")
     async def misc_say(self, ctx, *message):
         if is_admin(ctx):
-            await ctx.send(' '.join(message))
+            await ctx.respond(' '.join(message))
         else:
-            await ctx.send('{} said: {}'.format(ctx.message.author.mention, ' '.join(message)))
+            await ctx.respond('{} said: {}'.format(ctx.message.author.mention, ' '.join(message)))
 
-    @commands.command(name="duck")
+    @slash_command("duck")
     async def misc_duck(self, ctx, *message):
         """<query>  -  makes a lmddgtfy link for your <query>
 
         lmddgtfy = Let Me Duck Duck Go That For You"""
         query = urllib.parse.quote(' '.join(message))
-        await ctx.send("http://lmddgtfy.net/?q=" + query)
+        await ctx.respond("http://lmddgtfy.net/?q=" + query)
 
-    @commands.command(name="calculate", aliases=['c'])
-    async def calculator(self, ctx, *message):
+    @slash_command("calculate", aliases=['c'])
+    async def calculator(self, ctx, message):
         """Calculator
 
         Pretty self-explanatory - for when you're too lazy to open anything but Discord"""
         try:
-            result = do_maths(" ".join(message))
-            await ctx.send(result)
+            result = do_maths(message)
+            await ctx.respond(result)
         except ValueError:
-            await ctx.send("Ow, that hurt my head (or it wasn't maths) - try again")
+            await ctx.respond("Ow, that hurt my head (or it wasn't maths) - try again")
 
     @commands.check(is_owner)
-    @commands.command(name="restart", aliases=["getout"], hidden=True)
+    @slash_command("restart", aliases=["getout"], hidden=True)
     async def misc_restart(self, ctx):
-        await ctx.send(os.popen("systemctl restart butty").read())
+        await ctx.respond(os.popen("systemctl restart butty").read())
 
     @commands.check(is_owner)
-    @commands.command(name="presence", aliases=["statuschange"], hidden=True, pass_context=False)
+    @slash_command("presence", aliases=["statuschange"], hidden=True, pass_context=False)
     async def misc_statuschange(self, *new_game: str):
         await self.bot.change_presence(game=discord.Game(name=' '.join(new_game)))
 
     @commands.check(is_owner)
-    @commands.command(name="vdbug", hidden=True)
+    @slash_command("vdbug", hidden=True)
     async def voice_debug(self, ctx):
         """Stop letting people use commands they shouldn't you bastard"""
 
-        await ctx.send("```Python\n" + ctx.message.content[7:] + "```")
+        await ctx.respond("```Python\n" + ctx.message.content[7:] + "```")
         code = ctx.message.content[7:].strip("`")
         codeobj = compile(code, '', 'exec')
 
@@ -198,10 +207,10 @@ class Misc(commands.Cog):
 
         sys.stdout = sys.__stdout__
 
-        await ctx.send(buffer.getvalue())
+        await ctx.respond(buffer.getvalue())
 
     @commands.check(is_owner)
-    @commands.command(pass_context=True, hidden=True)
+    @slash_command(pass_context=True, hidden=True)
     async def debug(self, ctx, *, code: str):
         """Evaluates code."""
 
@@ -213,9 +222,9 @@ class Misc(commands.Cog):
             'bot': self.bot,
             'ctx': ctx,
             'message': ctx.message,
-            'guild': ctx.message.guild,
-            'channel': ctx.message.channel,
-            'author': ctx.message.author
+            'guild': ctx.guild,
+            'channel': ctx.channel,
+            'author': ctx.author
         }
 
         env.update(globals())
@@ -226,25 +235,25 @@ class Misc(commands.Cog):
             if inspect.isawaitable(result):
                 result = await result
         except Exception as e:
-            await ctx.send(python.format(type(e).__name__ + ': ' + str(e)))
+            await ctx.respond(python.format(type(e).__name__ + ': ' + str(e)))
             return
 
-        await ctx.send(python.format(result))
+        await ctx.respond(python.format(result))
 
     @commands.check(is_owner)
-    @commands.command(name="gitpull", hidden=True)
+    @slash_command("gitpull", hidden=True)
     async def misc_gitpull(self, ctx):
         os.system("git pull")
-        await ctx.send("done")
+        await ctx.respond("done")
 
     @commands.check(is_owner)
-    @commands.command(name="reload2", hidden=True)
+    @slash_command("reload2", hidden=True)
     async def reload_cog2(self, ctx, cog):
         self.bot.unload_extension(cog)
         self.bot.load_extension(cog)
-        await ctx.send("done")
+        await ctx.respond("done")
 
-    @commands.command(name="invites", hidden=True)
+    @slash_command("invites", hidden=True)
     async def invites(self, ctx):
         if len(ctx.message.mentions) == 0:
             member = ctx.author
@@ -255,9 +264,9 @@ class Misc(commands.Cog):
         for x in invs:
             if x.inviter == member:
                 t += x.uses
-        await ctx.send("{} has {} invites".format(member.name, t))
+        await ctx.respond("{} has {} invites".format(member.name, t))
 
-    @commands.command(hidden=True)
+    @slash_command(hidden=True)
     async def cookie(self, ctx, user, thanks_message="thanks for helping someone out"):
         if ctx.guild.id != 204621105720328193 or not (
                 ctx.author.guild_permissions.ban_members or discord.utils.get(ctx.author.roles,
@@ -269,18 +278,18 @@ class Misc(commands.Cog):
             try:
                 uid = int(user)
             except ValueError:
-                return await ctx.send(
+                return await ctx.respond(
                     "invalid userid, either put the number or a ping (but dont ping in public channels tho)")
         if self.cc.execute("select cookie_count from cookies where uid = ?", (uid,)).fetchall():
             self.cc.execute("update cookies set cookie_count = cookie_count + 1 where uid = ?", (uid,))
         else:
             self.cc.execute("insert into cookies (cookie_count, uid) values (?, ?)", (1, uid))
         self.cdb.commit()
-        await ctx.send("cookie awarded")
+        await ctx.respond("cookie awarded")
         await discord.utils.get(ctx.guild.channels, id=417108128669237259).send(
             ";butty-cookie {}".format(discord.utils.get(ctx.guild.members, id=uid).mention))
 
-    @commands.command(hidden=True)
+    @slash_command(hidden=True)
     async def cookies(self, ctx, user=None):
         if ctx.guild.id != 204621105720328193:
             return
@@ -292,30 +301,31 @@ class Misc(commands.Cog):
             try:
                 uid = int(user)
             except ValueError:
-                return await ctx.send("invalid user id")
+                return await ctx.respond("invalid user id")
         count = self.cc.execute("select cookie_count from cookies where uid = ?", (uid,)).fetchone()
         if not count:
-            return await ctx.send("{} dont have any cookies...".format('they' if user else 'you'))
-        await ctx.send("{} have {} cookies, gz".format('they' if user else 'you', count[0]))
+            return await ctx.respond("{} dont have any cookies...".format('they' if user else 'you'))
+        await ctx.respond("{} have {} cookies, gz".format('they' if user else 'you', count[0]))
 
-    @commands.command(hidden=True)
+    @slash_command(hidden=True)
     async def award_cookies(self, ctx):
         if ctx.author.id != 135483608491229184: return
         all_cookies = self.cc.execute("select uid, cookie_count from cookies").fetchall()
         for uid, cookie_count in all_cookies:
             if uid and cookie_count and discord.utils.get(ctx.guild.members, id=uid):
-                await discord.utils.get(ctx.guild.channels, id=417108128669237259).send(
+                await discord.utils.get(ctx.guild.channels, id=417108128669237259).respond(
                     ";butty-cookie {} {}".format(discord.utils.get(ctx.guild.members, id=uid).mention, cookie_count))
 
-    @commands.command(hidden=True)
+    @slash_command(hidden=True)
     async def list_new_joins(self, ctx, limit=100):
         l = []
         i = 0
         async for message in ctx.channel.history():
             i += 1
             if message.type == discord.MessageType.new_member: l.append(message.author.id)
-            if i > limit: break
-        await ctx.send(' '.join(str(ll) for ll in l) or 'no recent joins found')
+            if i > limit:
+                break
+        await ctx.respond(' '.join(str(ll) for ll in l) or 'no recent joins found')
 
 
 def setup(bot):
