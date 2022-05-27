@@ -53,7 +53,7 @@ class Reminders(commands.Cog):
     #     """
     #     pass
 
-    remindme = SlashCommandGroup('remindme5', "it's so you don't forget stuff")
+    remindme = SlashCommandGroup('remindme', "it's so you don't forget stuff")
 
     @remindme.command(aliases=['a'], description="e.g. [remindme add 1 hour, open the door")
     async def add(self, ctx, when, what):
