@@ -139,8 +139,9 @@ class Source(discord.AudioSource):
 
 
 def get_source(song, use_opus=True):
-    for _ in range(20):
+    for attempt in range(20):
         song.refresh_info()
+        song.attempts = attempt
 
         try:
             return try_get_source(song, use_opus)
