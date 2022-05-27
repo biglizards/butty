@@ -22,7 +22,7 @@ class Prefix:
         # else get prefix from db (or cache)
 
         if isinstance(message.channel, discord.abc.PrivateChannel):
-            return '['
+            return ';'
 
         if message.content.startswith(message.guild.me.mention + ' '):
             return '{0.me.mention} '.format(message.guild)
@@ -30,8 +30,8 @@ class Prefix:
             return '{0.user.mention} '.format(bot)  # because sometimes a mention has an ! in it for no reason
         # TODO replace with nicer looking regex
 
-        if message.content.startswith('['):
-            return '['  # always respond to '['
+        if message.content.startswith(';'):
+            return ';'  # always respond to '['
 
         if check_db:
             prefix = self.c.execute("SELECT prefix FROM prefixes WHERE id=?", (message.guild.id,)).fetchone()
@@ -42,7 +42,7 @@ class Prefix:
             prefix = self.prefixes.get(message.guild.id)
 
         if not prefix:
-            return '['
+            return ';'
         if prefix != self.prefixes.get(message.guild.id):
             self.prefixes[message.guild.id] = prefix
 
