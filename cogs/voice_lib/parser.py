@@ -11,6 +11,7 @@ import logging
 
 # dumb buffer stuff
 import io, queue, subprocess
+import os
 
 
 class Handler(mkvparse.MatroskaHandler):
@@ -147,6 +148,7 @@ def get_source(song, use_opus=True):
             return try_get_source(song, use_opus)
         except urllib.error.HTTPError as e:
             if e.code == 403:  # forbidden -- this seems to happen if it think's we're a bot? idk. try again
+                os.system('youtube-dl --rm-cache-dir')
                 time.sleep(0.5)
                 use_opus = not use_opus  # just jiggle it about, maybe it'll start working eventually
             else:
